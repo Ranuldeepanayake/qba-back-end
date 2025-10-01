@@ -8,5 +8,10 @@
   },
   "scripts": {
     "start": "node ./server.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.3"
   }
 }
