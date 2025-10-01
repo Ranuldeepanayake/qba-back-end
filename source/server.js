@@ -19,13 +19,17 @@ function printEnvs() {
 //Function which publishes to the AMPQ server. Handles reconnecting and closing.
 async function publish(message) {
   try {
+    console.log("Attempting to establish a connection with the AMPQ server...");
     const connection = await amqp.connect(RABBITMQ_URL);
+
+    console.log("Attempting to create an AMPQ channel...");
     const channel = await connection.createChannel();
 
+    console.log("Attempting to create an AMPQ queue...");
     await channel.assertQueue(QUEUE_NAME, { durable: true });
 
+    console.log("Attempting to publish message...");
     channel.sendToQueue(QUEUE_NAME, Buffer.from(message), { persistent: true });
-
     console.log("[x] Sent: ", message);
 
     await channel.close();
