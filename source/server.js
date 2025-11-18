@@ -7,13 +7,25 @@ require('dotenv').config();
 const amqp = require('amqplib');
 const crypto = require('crypto');
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
+const RABBITMQ_HOST = process.env.RABBITMQ_HOST;
+const RABBITMQ_PORT = process.env.RABBITMQ_PORT;
+const RABBITMQ_USERNAME = process.env.RABBITMQ_USERNAME;
+const RABBITMQ_PASSWORD = process.env.RABBITMQ_PASSWORD;
 const QUEUE_NAME = process.env.QUEUE_NAME || 'default_queue';
+const RANDOM_LENGTH = process.env.RANDOM_LENGTH;
+const PUBLISH_INTERVAL = process.env.PUBLISH_INTERVAL;
+var RABBITMQ_URL = `amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`;
 
 //Function which dumps related ENV variables.
 function printEnvs() {
-  console.log("ENV: ", process.env.RABBITMQ_URL);
-  console.log("ENV: ", process.env.QUEUE_NAME);
+  console.log("ENV: ", RABBITMQ_HOST);
+  console.log("ENV: ", RABBITMQ_PORT);
+  console.log("ENV: ", RABBITMQ_USERNAME);
+  console.log("ENV: ", RABBITMQ_PASSWORD);
+  console.log("ENV: ", QUEUE_NAME);
+  console.log("ENV: ", RANDOM_LENGTH);
+  console.log("ENV: ", PUBLISH_INTERVAL);
+  console.log("ENV: ", RABBITMQ_URL);
 }
 
 //Function which publishes to the AMPQ server. Handles reconnecting and closing.
@@ -52,7 +64,6 @@ setInterval(() => {
   //console.log("Generate message: ", message);
   publish(message);
 }, process.env.PUBLISH_INTERVAL);
-
 
 // Example: send message from CLI args
 //const msg = process.argv.slice(2).join(" ") || "Hello! This is a message from the backend";
