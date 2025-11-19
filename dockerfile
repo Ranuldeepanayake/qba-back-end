@@ -2,7 +2,7 @@ FROM node:24-alpine
 
 WORKDIR /usr/src/app
 
-COPY ./source/ .
+COPY source .
 
 COPY package*.json .
 
