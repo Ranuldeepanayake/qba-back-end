@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-feature-branch:
     runs-on: self-hosted
 
     steps:
@@ -33,19 +33,20 @@ jobs:
         aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
 
 
+      #Read the version file.
+      #VERSION=$(node -p "require('./package.json').version")
+      #Append the version number variable to the array of github runner variables.
+      #echo "VERSION=$VERSION" >> $GITHUB_ENV 
+      #Append the image digest.
+      #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
     - name: Prepare image tag with version number and timestamp
       id: meta
-      run: |
-        #Read the version file.
+      run: |       
         VERSION=$(node -p "require('./package.json').version") 
-
-        #Append the version number variable to the array of github runner variables.
         echo "VERSION=$VERSION" >> $GITHUB_ENV 
 
         TIMESTAMP=$(date +'%Y%m%d%H%M%S')
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-
-        #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
 
         echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP >> $GITHUB_ENV
 
