@@ -8,6 +8,9 @@ on:
         required: true
         #default: "release-1.0"
 
+env:
+  PARENT_BRANCH: develop
+
 permissions:
   contents: write
 
@@ -18,13 +21,16 @@ jobs:
     steps:
       - name: Validate branch name
         run: |
-          BRANCH="${{ github.event.inputs.branch_name }}"
+          BRANCH_NAME="${{ github.event.inputs.branch_name }}"
+          #Save input to a global variable. 
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV 
+          echo "Input branch name: ${ BRANCH_NAME }" 
 
           # Allowed patterns
           PATTERN="^(feature|bugfix)\/[A-Z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
 
-          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
-            echo "❌ Invalid branch name: $BRANCH"
+          if [[ ! ${ BRANCH_NAME } =~ $PATTERN ]]; then
+            echo "❌ Invalid branch name: ${ BRANCH_NAME }"
             echo "Allowed formats:"
             echo "  feature/ABC-123-description"
             echo "  bugfix/ABC-123-description"
@@ -34,8 +40,8 @@ jobs:
 
           echo "✅ Branch name is valid"
        
-      # - name: Create and push branch
-      #   run: |
-      #     git checkout main
-      #     git checkout -b ${{ github.event.inputs.branch_name }}
-      #     git push origin ${{ github.event.inputs.branch_name }}
+      - name: Create and push branch
+        run: |
+          git checkout ${ PARENT_BRANCH }
+          git checkout -b ${ BRANCH_NAME }
+          git push origin ${ BRANCH_NAME }
