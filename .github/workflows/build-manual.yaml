@@ -1,7 +1,7 @@
 name: Create feature branch
 
 on:
-  workflow_dispatch:   # manual trigger
+  workflow_dispatch:   #Manual trigger
     inputs:
       branch_name:
         description: "New feature branch name (feature/ABC-123-desc)"
