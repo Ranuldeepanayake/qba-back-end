@@ -54,7 +54,7 @@ jobs:
         TIMESTAMP=$(date +'%Y%m%d%H%M%S')
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 
-        echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP >> $GITHUB_ENV
+        echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP" >> $GITHUB_ENV
 
 
     - name: Build Docker image
