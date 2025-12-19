@@ -7,6 +7,9 @@ on:
     - '**'
   workflow_dispatch:
 
+env:
+  VERSION_FILE: package.json
+
 jobs:
   build-feature-branch:
     runs-on: self-hosted
@@ -41,8 +44,11 @@ jobs:
       #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
     - name: Prepare image tag with version number and timestamp
       id: meta
-      run: |       
-        VERSION=$(node -p "require('./package.json').version") 
+      run: | 
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+        #VERSION=$(node -p "require('./package.json').version") #If node is installed in the environment.
+        VERSION=$(jq -r .version $VERSION_FILE | tr -d '\n')
         echo "VERSION=$VERSION" >> $GITHUB_ENV 
 
         TIMESTAMP=$(date +'%Y%m%d%H%M%S')
