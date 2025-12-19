@@ -34,38 +34,43 @@ jobs:
     #   id: login-ecr
     #   uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Login to Amazon Public ECR
+    - name: Login to AWS ECR
       run: |
         aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
 
-
-      #Read the version file.
-      #VERSION=$(node -p "require('./package.json').version")
-      #Append the version number variable to the array of github runner variables.
-      #echo "VERSION=$VERSION" >> $GITHUB_ENV 
-      #Append the image digest.
-      #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+      
     - name: Prepare image tag with version number and timestamp
       id: meta
       run: | 
+        #Read the version file.
+        VERSION=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+
+        #If node is installed in the environment.
+        #VERSION=$(node -p "require('./package.json').version") 
+        
+        #Append the version number variable to the array of runtime variables.
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Version number: ${VERSION}"
 
-        #VERSION=$(node -p "require('./package.json').version") #If node is installed in the environment.
-        VERSION=$(jq -r '.version' $VERSION_FILE | tr -d '\n')
-        echo "VERSION=$VERSION" >> $GITHUB_ENV 
-
+        #Append the time stamp variable to the array of runtime variables.
         TIMESTAMP=$(date +'%Y%m%d%H%M%S')
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 
+        #Append the image digest.
+        #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+
+        #Append the final tag to the array of runtime variables.
         echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP" >> $GITHUB_ENV
+        echo "${IMAGE_TAG}"
 
 
-    - name: Build Docker image
+    - name: Build image image
       run: |
-        echo "Test output for ECR ${{ steps.login-ecr.outputs.registry }}"
+        echo "Image name: ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG}"
         docker build -t ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG} .
 
-    - name: Push Docker image to ECR
+    
+    - name: Push image to ECR
       run: |
         docker push ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG}
 
