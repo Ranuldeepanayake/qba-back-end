@@ -21,7 +21,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        aws-region: ${{ vars.AWS_REGION }}
 
     #Only needed to log in to private ECR repositories.
     # - name: Login to Amazon ECR
@@ -30,7 +30,7 @@ jobs:
 
     - name: Login to Amazon Public ECR
       run: |
-        aws ecr-public get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
+        aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
 
 
     - name: Prepare image tag with version number and timestamp
