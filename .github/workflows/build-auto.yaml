@@ -48,7 +48,7 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
         #VERSION=$(node -p "require('./package.json').version") #If node is installed in the environment.
-        VERSION=$(jq -r .version $VERSION_FILE | tr -d '\n')
+        VERSION=$(jq -r '.version' $VERSION_FILE | tr -d '\n')
         echo "VERSION=$VERSION" >> $GITHUB_ENV 
 
         TIMESTAMP=$(date +'%Y%m%d%H%M%S')
