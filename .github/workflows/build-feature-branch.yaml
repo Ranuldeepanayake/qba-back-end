@@ -43,25 +43,26 @@ jobs:
       id: meta
       run: | 
         #Read the version file.
-        VERSION=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+        VERSION_NUMBER=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
 
         #If node is installed in the environment.
-        #VERSION=$(node -p "require('./package.json').version") 
+        #VERSION_NUMBER=$(node -p "require('./package.json').version") 
         
         #Append the version number variable to the array of runtime variables.
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "Version number: ${VERSION}"
+        echo "VERSION_NUMBER=VERSION_NUMBER" >> $GITHUB_ENV
+        echo "Version number: ${VERSION_NUMBER}"
 
         #Append the time stamp variable to the array of runtime variables.
-        TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+        BUILD_TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+        echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> $GITHUB_ENV
+        echo "Build timestamp: ${BUILD_TIMESTAMP}"
 
         #Append the image digest.
         #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
 
         #Append the final tag to the array of runtime variables.
-        echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP" >> $GITHUB_ENV
-        echo "${IMAGE_TAG}"
+        echo "IMAGE_TAG=${VERSION_NUMBER}-SNAPSHOT-${BUILD_TIMESTAMP}" >> $GITHUB_ENV
+        echo "Image tag: ${IMAGE_TAG}"
 
 
     - name: Build image image
