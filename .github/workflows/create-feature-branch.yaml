@@ -24,7 +24,7 @@ jobs:
           BRANCH_NAME="${{ github.event.inputs.branch_name }}"
           #Save input to a global variable. 
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV 
-          echo "Input branch name: ${ BRANCH_NAME }" 
+          echo "Input branch name: ${BRANCH_NAME}" 
 
           # Allowed patterns
           PATTERN="^(feature|bugfix)\/[A-Z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
