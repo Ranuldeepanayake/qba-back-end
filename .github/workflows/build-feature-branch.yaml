@@ -1,13 +1,13 @@
-name: Build feature branch
+name: Build feature/develop branch
 
 on:
   #Execute on push and manually.
-  push:
+  #push:
     #Only build automatically if pushed to the specified branches.
     branches: 
     #- '**'
-    - develop
-    - main
+    #- develop
+    #- main
   workflow_dispatch:
 
 env:
