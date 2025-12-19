@@ -3,8 +3,11 @@ name: Build feature branch
 on:
   #Execute on push and manually.
   push:
+    #Only build automatically if pushed to the specified branches.
     branches: 
-    - '**'
+    #- '**'
+    - develop
+    - main
   workflow_dispatch:
 
 env:
