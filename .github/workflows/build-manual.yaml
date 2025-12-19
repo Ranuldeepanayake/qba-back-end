@@ -17,22 +17,22 @@ jobs:
 
     steps:
       - name: Validate branch name
-          run: |
-            BRANCH="${{ github.event.inputs.branch_name }}"
+        run: |
+          BRANCH="${{ github.event.inputs.branch_name }}"
 
-            # Allowed patterns
-            PATTERN="^(feature|bugfix)\/[A-Z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
+          # Allowed patterns
+          PATTERN="^(feature|bugfix)\/[A-Z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
 
-            if [[ ! "$BRANCH" =~ $PATTERN ]]; then
-              echo "❌ Invalid branch name: $BRANCH"
-              echo "Allowed formats:"
-              echo "  feature/ABC-123-description"
-              echo "  bugfix/ABC-123-description"
-              echo "  release/1.2.0"
-              exit 1
-            fi
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "❌ Invalid branch name: $BRANCH"
+            echo "Allowed formats:"
+            echo "  feature/ABC-123-description"
+            echo "  bugfix/ABC-123-description"
+            echo "  release/1.2.0"
+            exit 1
+          fi
 
-            echo "✅ Branch name is valid"
+          echo "✅ Branch name is valid"
        
       # - name: Create and push branch
       #   run: |
