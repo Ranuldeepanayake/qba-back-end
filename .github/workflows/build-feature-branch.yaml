@@ -4,7 +4,7 @@ on:
   #Execute on push and manually.
   #push:
     #Only build automatically if pushed to the specified branches.
-    branches: 
+    #branches: 
     #- '**'
     #- develop
     #- main
