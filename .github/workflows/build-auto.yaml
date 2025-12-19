@@ -1,32 +1,64 @@
-name: Build and Deploy a Node.js Docker App to EC2
+name: Build feature branch
 
 on:
+  #Execute on push and manually.
   push:
-    branches: ["master"]
+    branches: 
+    - '**'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/private:gh-action-app
+    #Only needed to log in to private ECR repositories.
+    # - name: Login to Amazon ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Login to Amazon Public ECR
+      run: |
+        aws ecr-public get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
+
+
+    - name: Prepare image tag with version number and timestamp
+      id: meta
+      run: |
+        #Read the version file.
+        VERSION=$(node -p "require('./package.json').version") 
+
+        #Append the version number variable to the array of github runner variables.
+        echo "VERSION=$VERSION" >> $GITHUB_ENV 
+
+        TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+
+        #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+
+        echo "IMAGE_TAG=$VERSION-SNAPSHOT-$TIMESTAMP >> $GITHUB_ENV
+
+
+    - name: Build Docker image
+      run: |
+        echo "Test output for ECR ${{ steps.login-ecr.outputs.registry }}"
+        docker build -t ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG} .
+
+    - name: Push Docker image to ECR
+      run: |
+        docker push ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG}
+
 
   # deploy:
   #   runs-on: ubuntu-latest
