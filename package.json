@@ -1,0 +1,17 @@
+{
+  "name": "qba-back-end",
+  "version": "0.1.0",
+  "description": "The backend service which pushes data into the queuing service",
+  "author": {
+    "name": "Ranul",
+    "email": "ranuldeepanayake@outlook.com"
+  },
+  "scripts": {
+    "start": "node ./server.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.3"
+  }
+}
