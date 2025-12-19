@@ -61,7 +61,7 @@ jobs:
         #SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
 
         #Append the final tag to the array of runtime variables.
-        echo "IMAGE_TAG=${VERSION_NUMBER}-SNAPSHOT-${BUILD_TIMESTAMP}"
+        IMAGE_TAG=${VERSION_NUMBER}-SNAPSHOT-${BUILD_TIMESTAMP}
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
 
