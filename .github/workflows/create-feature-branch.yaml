@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: "New feature branch name (feature/ABC-123-desc)"
+        description: "New feature branch name"
         required: true
         #default: "release-1.0"
 
@@ -19,6 +19,7 @@ permissions:
 #A job has a sequential list of steps. Several jobs can be run in parallel or chained.
 jobs:
   create-feature-branch:
+
     #Runner label.
     runs-on: self-hosted
 
@@ -32,14 +33,12 @@ jobs:
           echo "Input branch name: ${BRANCH_NAME}" 
 
           #Allowed patterns.
-          PATTERN="^(feature|bugfix)\/[a-z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
+          #PATTERN="^(feature|bugfix)\/[a-z]+-[0-9]+-[a-z0-9-]+$|^release\/[0-9]+\.[0-9]+\.[0-9]+$"
+          PATTERN="^(feature)\/[a-z]+-[0-9]+-[a-z0-9-]+$"
 
           if [[ ! ${BRANCH_NAME} =~ $PATTERN ]]; then
             echo "❌ Invalid branch name: ${BRANCH_NAME}"
-            echo "Allowed formats:"
-            echo "  feature/abc-123-description"
-            echo "  bugfix/ABC-123-description"
-            echo "  release/1.2.0"
+            echo "Allowed formats: feature/description"
             exit 1
           fi
 

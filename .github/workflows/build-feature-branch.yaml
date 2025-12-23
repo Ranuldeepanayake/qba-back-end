@@ -10,6 +10,7 @@ on:
     #- main
   workflow_dispatch:
 
+#Global environment variables.
 env:
   VERSION_FILE: package.json
 
@@ -38,10 +39,8 @@ jobs:
       run: |
         aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
 
-      
-    - name: Prepare image tag
-      id: meta
-      run: | 
+    - name: Version number validation
+      run: |
         echo "Version file: ${VERSION_FILE}"
 
         #Read the version file.
@@ -53,7 +52,20 @@ jobs:
         #Append the version number variable to the array of runtime variables.
         echo "VERSION_NUMBER=VERSION_NUMBER" >> $GITHUB_ENV
         echo "Version number: ${VERSION_NUMBER}"
+        
+        #Allowed patterns.
+        PATTERN="/([0-9]+\.[0-9]+\.[0]){1,1}/"
 
+        if [[ ! ${BRANCH_NAME} =~ $PATTERN ]]; then
+          echo "❌ Invalid branch name: ${BRANCH_NAME}"
+          echo "Allowed formats: FEATURE_NAME"
+          exit 1
+        fi
+
+      
+    - name: Prepare image tag
+      id: meta
+      run: | 
         #Append the time stamp variable to the array of runtime variables.
         BUILD_TIMESTAMP=$(date +'%Y%m%d%H%M%S')
         echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> $GITHUB_ENV
