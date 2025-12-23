@@ -22,7 +22,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-
     - name: Configure artifact repository credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -39,7 +38,7 @@ jobs:
       run: |
         aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
 
-    - name: Version number validation
+    - name: Validate version number
       run: |
         echo "Version file: ${VERSION_FILE}"
 
@@ -56,12 +55,13 @@ jobs:
         #Allowed patterns.
         PATTERN="/([0-9]+\.[0-9]+\.[0]){1,1}/"
 
-        if [[ ! ${BRANCH_NAME} =~ $PATTERN ]]; then
-          echo "❌ Invalid branch name: ${BRANCH_NAME}"
-          echo "Allowed formats: FEATURE_NAME"
+        if [[ ! ${VERSION_NUMBER} =~ $PATTERN ]]; then
+          echo "❌ Version number ${VERSION_NUMBER} is inconsistent with the format. Exiting!"
+          echo "Allowed formats: x.x.0"
           exit 1
+        else
+          echo "Version number ${VERSION_NUMBER} is consistent with the format"
         fi
-
       
     - name: Prepare image tag
       id: meta
@@ -79,13 +79,11 @@ jobs:
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
 
-
     - name: Build image
       run: |
         echo "Image name: ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG}"
         docker build -t ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG} .
 
-    
     - name: Push image to artifact repository
       run: |
         docker push ${{ vars.ECR_REPOSITORY_URL }}/${{ vars.ECR_REPOSITORY_GROUP }}/${{ vars.ECR_REPOSITORY_NAME }}:${IMAGE_TAG}
