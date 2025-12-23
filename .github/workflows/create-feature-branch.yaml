@@ -66,7 +66,7 @@ jobs:
           #VERSION_NUMBER=$(node -p "require('./package.json').version") 
           
           #Append the version number variable to the array of runtime variables.
-          echo "VERSION_NUMBER=VERSION_NUMBER" >> $GITHUB_ENV
+          echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_ENV
           echo "Version number: ${VERSION_NUMBER}"
           
           #Allowed patterns.
@@ -77,7 +77,7 @@ jobs:
             echo "Allowed formats: x.x.0"
             exit 1
           else
-            echo "Version number ${VERSION_NUMBER} is consistent with the format"
+            echo "✅ Version number ${VERSION_NUMBER} is consistent with the format"
           fi
 
         #Prepare the new branch name with the necessary appends.
