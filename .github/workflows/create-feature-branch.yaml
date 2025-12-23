@@ -16,6 +16,7 @@ env:
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
 
+#Permissions.
 permissions:
   contents: write
 
