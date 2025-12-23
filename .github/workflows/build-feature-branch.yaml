@@ -68,7 +68,7 @@ jobs:
         echo "Build timestamp: ${BUILD_TIMESTAMP}"
 
         #Append the image digest.
-        DIGEST_SHA=$("SHA"(echo "${GITHUB_SHA}" | cut -c1-8))
+        DIGEST_SHA=SHA$(echo "${GITHUB_SHA}" | cut -c1-8)
         echo "DIGEST_SHA=$DIGEST_SHA" >> $GITHUB_ENV
         echo "Digest (SHA): ${DIGEST_SHA}"
 
