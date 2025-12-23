@@ -50,7 +50,8 @@ jobs:
         #Checkout the parent branch specifically since we are creating the new one from it.
       - name: Checkout code
         uses: actions/checkout@v4
-        ref: develop
+        with:
+          ref: develop
 
         #Check if the version number is in the correct format.
       - name: Validate version number
