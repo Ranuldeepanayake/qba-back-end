@@ -51,7 +51,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: ${PARENT_BRANCH}
 
         #Check if the version number is in the correct format.
       - name: Validate version number
