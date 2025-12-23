@@ -44,7 +44,7 @@ jobs:
         #VERSION_NUMBER=$(node -p "require('./package.json').version") 
         
         #Append the version number variable to the array of runtime variables.
-        echo "VERSION_NUMBER=VERSION_NUMBER" >> $GITHUB_ENV
+        echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_ENV
         echo "Version number: ${VERSION_NUMBER}"
         
         #Allowed patterns.
@@ -55,7 +55,7 @@ jobs:
           echo "Allowed formats: x.x.0"
           exit 1
         else
-          echo "Version number ${VERSION_NUMBER} is consistent with the format"
+          echo "✅ Version number ${VERSION_NUMBER} is consistent with the format"
         fi
 
       #Prepare the image tag with the necessary appends.
@@ -81,7 +81,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${AWS_REGION}
+        aws-region: ${{ env.AWS_REGION }}
 
       #Only needed to log in to private ECR repositories.
       # - name: Login to Amazon ECR
