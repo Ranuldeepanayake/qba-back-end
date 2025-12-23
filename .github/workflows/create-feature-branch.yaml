@@ -85,7 +85,7 @@ jobs:
         id: meta
         run: | 
           #Append the necessary components.
-          NEW_BRANCH_NAME="feature\/${VERSION_NUMBER}\/${INPUT_BRANCH_NAME}"
+          NEW_BRANCH_NAME="feature/${VERSION_NUMBER}/${INPUT_BRANCH_NAME}"
           echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
           echo "New branch name: ${NEW_BRANCH_NAME}"
        
