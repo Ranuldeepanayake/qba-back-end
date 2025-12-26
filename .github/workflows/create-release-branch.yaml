@@ -133,17 +133,31 @@ jobs:
             echo "✅ Release candidate version written correctly to the version file"
           fi
           
+        #Create git tag.
+      - name: Create git tag
+        run: |
+          git tag ${RC_VERSION}
 
         #Push the new branch to remote.
       - name: Push release branch
         run: |
           git config user.name ${COMMIT_USERNAME} 
-          git config user.email $COMMIT_EMAIL
+          git config user.email ${COMMIT_EMAIL}
 
           git add ${VERSION_FILE}
+
           #Handle the nothing to commit issue.
+          # if git diff --cached --quiet; then
+          # echo "No changes to commit"
+          # else
+          #   git commit -m "Pipeline: set version to ${RC_VERSION}"
+          # fi
           git commit -m "Pipeline: set version to ${RC_VERSION}" || echo "No changes to commit"
 
-          # git push origin ${NEW_BRANCH_NAME}
+          #Push to the branch.
+          git push origin ${NEW_BRANCH_NAME}
+
+          #Push the tag.
+          git push origin ${RC_VERSION}
 
           
