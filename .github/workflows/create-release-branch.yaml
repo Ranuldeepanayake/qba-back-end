@@ -43,7 +43,9 @@ on:
 env:
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
-  RC_TAG: '0'
+  RC_TAG: 0 
+  COMMIT_USERNAME: github-actions
+  COMMIT_EMAIL: github-actions@github.com
 
 #Permissions.
 permissions:
@@ -113,6 +115,7 @@ jobs:
           #jq ".version = \"${RC_VERSION}\"" package.json > tmp.json && mv tmp.json package.json
 
           RC_VERSION="${VERSION_NUMBER}-rc.${RC_TAG}"
+          RC_VERSION=$RC_VERSION >> GITHUB_ENV
           echo "Prepared release candidate version: ${RC_VERSION}"
 
           #Write the new version to the version file.
@@ -123,7 +126,7 @@ jobs:
           echo "Written release candidate version: $RC_VERSION_READ_BACK"
 
           #Validate written changes.
-          if [[ ! ${RC_VERSION_READ_BACK} =~ $RC_VERSION ]]; then
+          if [[ ! $RC_VERSION_READ_BACK =~ $RC_VERSION ]]; then
             echo "❌ Release candidate version not written correctly to the version file. Exiting!"
             exit 1
           else
@@ -131,15 +134,16 @@ jobs:
           fi
           
 
-      #   #Push the new branch to remote.
-      # - name: Push release branch
-      #   run: |
-      #     git config user.name "github-actions"
-      #     git config user.email "github-actions@github.com"
+        #Push the new branch to remote.
+      - name: Push release branch
+        run: |
+          git config user.name ${COMMIT_USERNAME} 
+          git config user.email $COMMIT_EMAIL
 
-      #     git add package.json
-      #     git commit -m "chore: set version to ${RC_VERSION}" || echo "No changes to commit"
+          git add ${VERSION_FILE}
+          #Handle the nothing to commit issue.
+          git commit -m "Pipeline: set version to ${RC_VERSION}" || echo "No changes to commit"
 
-      #     git push origin ${NEW_BRANCH_NAME}
+          # git push origin ${NEW_BRANCH_NAME}
 
           
