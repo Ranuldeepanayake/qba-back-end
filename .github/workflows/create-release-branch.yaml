@@ -156,6 +156,7 @@ jobs:
           #Push the branch.
           git push --set-upstream origin ${NEW_BRANCH_NAME}
 
+          echo "RC version: ${RC_VERSION}"
           git tag ${RC_VERSION}
           echo "Tags: $(git tag -l)"
 
