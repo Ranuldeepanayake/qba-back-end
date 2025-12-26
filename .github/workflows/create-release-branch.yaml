@@ -119,11 +119,11 @@ jobs:
           jq ".version = \"${RC_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
 
           #echo "Release candidate version in version file: $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
-          RC_VERSION_READ_BACK= $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+          RC_VERSION_READ_BACK=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
           echo "Written release candidate version: $RC_VERSION_READ_BACK"
 
           #Validate written changes.
-          if [[ ! ${RC_VERSION_READ_BACK} =~ $RC_VERSION ]]; then
+          if [[ ! $RC_VERSION_READ_BACK =~ $RC_VERSION ]]; then
             echo "❌ Release candidate version not written correctly to the version file. Exiting!"
             exit 1
           else
