@@ -123,7 +123,7 @@ jobs:
           echo "Written release candidate version: $RC_VERSION_READ_BACK"
 
           #Validate written changes.
-          if [[ ! $RC_VERSION_READ_BACK =~ $RC_VERSION ]]; then
+          if [[ ! ${RC_VERSION_READ_BACK} =~ $RC_VERSION ]]; then
             echo "❌ Release candidate version not written correctly to the version file. Exiting!"
             exit 1
           else
