@@ -43,7 +43,7 @@ on:
 env:
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
-  RELEASE_CANDIDATE_TAG: rc.0
+  RC_TAG: '0'
 
 #Permissions.
 permissions:
@@ -95,7 +95,7 @@ jobs:
         id: meta
         run: | 
           #Append the necessary components.
-          NEW_BRANCH_NAME="release/${VERSION_NUMBER}-${RELEASE_CANDIDATE_TAG}"
+          NEW_BRANCH_NAME="release/${VERSION_NUMBER}"
           echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
           echo "New branch name: ${NEW_BRANCH_NAME}"
        
@@ -112,12 +112,23 @@ jobs:
           #RC_VERSION="${BASE_VERSION}-rc.${RC_NUMBER}"
           #jq ".version = \"${RC_VERSION}\"" package.json > tmp.json && mv tmp.json package.json
 
-          RC_VERSION="${VERSION_NUMBER}-${RELEASE_CANDIDATE_TAG}"
+          RC_VERSION="${VERSION_NUMBER}-rc.${RC_TAG}"
           echo "Prepared release candidate version: ${RC_VERSION}"
 
           #Write the new version to the version file.
           jq ".version = \"${RC_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
-          echo $(jq -r '.version' ${VERSION_FILE})
+
+          #echo "Release candidate version in version file: $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+          RC_VERSION_READ_BACK= $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+          echo "Written release candidate version: $RC_VERSION_READ_BACK"
+
+          #Validate written changes.
+          if [[ ! ${RC_VERSION_READ_BACK} =~ $RC_VERSION ]]; then
+            echo "❌ Release candidate version not written correctly to the version file. Exiting!"
+            exit 1
+          else
+            echo "✅ Release candidate version written correctly to the version file"
+          fi
           
 
       #   #Push the new branch to remote.
