@@ -136,11 +136,6 @@ jobs:
           else
             echo "✅ Release candidate version written correctly to the version file"
           fi
-          
-        #Create git tag.
-      - name: Create git tag
-        run: |
-          git tag ${RC_VERSION}
 
         #Push the new branch to remote.
       - name: Push release branch
@@ -161,6 +156,8 @@ jobs:
           #Push to the branch.
           git push --set-upstream origin ${NEW_BRANCH_NAME}
 
+          git tag ${RC_VERSION}
+          
           #Push the tag.
           git push origin ${RC_VERSION}
 
