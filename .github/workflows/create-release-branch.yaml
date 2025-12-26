@@ -5,7 +5,8 @@ name: Create release branch
 on:
   workflow_dispatch:
     inputs:
-      action:
+      #Input to select the action.
+      INPUT_ACTION:
         description: 'Select action'
         required: true
         default: build
@@ -14,7 +15,9 @@ on:
         options:
           - build
           - build-and-deploy
-      action:
+
+      #Input to select the version number segment to bump.
+      INPUT_BUMP_SEGMENT:
         description: 'Select version segment to bump'
         required: true
         default: minor
