@@ -1,0 +1,131 @@
+#Create a new release branch from the develop branch and increment the version number of the develop branch.
+
+name: Create release branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Select action'
+        required: true
+        default: build
+        # GitHub doesn't have native radio buttons; use allowed values
+        type: choice
+        options:
+          - build
+          - build-and-deploy
+      action:
+        description: 'Select version segment to bump'
+        required: true
+        default: minor
+        type: choice
+        options:
+          - minor
+          - major
+
+#########
+# - name: Deploy to environment
+#   if: ${{ github.event.inputs.environment == 'prod' }}
+#   run: echo "Deploying to production"
+
+# if: github.ref == 'refs/heads/develop'
+
+# on:
+#   push:
+#     branches:
+#       - "release/**"
+########
+
+#Global environment variables.
+env:
+  VERSION_FILE: package.json
+  PARENT_BRANCH: develop
+  RELEASE_CANDIDATE_TAG: rc.0
+
+#Permissions.
+permissions:
+  contents: write
+
+#A job has a sequential list of steps. Several jobs can be run in parallel or chained.
+jobs:
+  create-release-branch:
+
+    #Runner label.
+    runs-on: self-hosted
+
+    steps:
+        #Checkout the parent branch specifically since we are creating the new one from it.
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PARENT_BRANCH }}
+
+        #Check if the version number is in the correct format.
+      - name: Validate version number
+        run: |
+          echo "Version file: ${VERSION_FILE}"
+
+          #Read the version file.
+          VERSION_NUMBER=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+          
+          #Append the version number variable to the array of runtime variables.
+          echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_ENV
+          echo "Version number: ${VERSION_NUMBER}"
+          
+          #Allowed patterns.
+          PATTERN="([0-9]+\.[0-9]+\.[0]){1,1}"
+
+          if [[ ! ${VERSION_NUMBER} =~ $PATTERN ]]; then
+            echo "❌ Version number ${VERSION_NUMBER} is inconsistent with the format. Exiting!"
+            echo "Allowed formats: x.x.0"
+            exit 1
+          else
+            echo "✅ Version number ${VERSION_NUMBER} is consistent with the format"
+          fi
+
+##Pull the develop branch, create a release branch with the release candidate tag, append the release candidate tag to the version file,
+##create a git tag out of the new branch, push the release branch to remote, checkout back from develop, increment the version file, push back to remote, 
+##build the release branch, deploy the release branch.
+
+        #Prepare the new branch name with the necessary appends.
+      - name: Prepare release branch name
+        id: meta
+        run: | 
+          #Append the necessary components.
+          NEW_BRANCH_NAME="release/${VERSION_NUMBER}-${RELEASE_CANDIDATE_TAG}"
+          echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
+          echo "New branch name: ${NEW_BRANCH_NAME}"
+       
+        #Create the new branch from the parent branch.
+      - name: Create release branch
+        run: |
+          git checkout -b ${NEW_BRANCH_NAME}
+
+        #Append the release candidate tag to the version file of the new branch.
+      - name: Append release candidate tag
+        run: |
+          #BASE_VERSION=$(jq -r '.version' package.json | sed 's/-rc\..*//')
+          #RC_NUMBER=${{ github.run_number }}
+          #RC_VERSION="${BASE_VERSION}-rc.${RC_NUMBER}"
+          #jq ".version = \"${RC_VERSION}\"" package.json > tmp.json && mv tmp.json package.json
+
+          RC_VERSION="${VERSION_NUMBER}-${RELEASE_CANDIDATE_TAG}"
+          echo "Prepared release candidate version: ${RC_VERSION}"
+
+          #Write the new version to the version file.
+          jq ".version = \"${RC_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
+          echo $(jq -r '.version' ${VERSION_FILE})
+          
+
+      #   #Push the new branch to remote.
+      # - name: Push release branch
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@github.com"
+
+      #     git add package.json
+      #     git commit -m "chore: set version to ${RC_VERSION}" || echo "No changes to commit"
+
+      #     git push origin ${NEW_BRANCH_NAME}
+
+          
