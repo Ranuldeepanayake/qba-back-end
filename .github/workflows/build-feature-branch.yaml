@@ -21,7 +21,7 @@ env:
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
   DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
-  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm.git
+  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
 #Permissions.
 permissions:
@@ -120,6 +120,7 @@ jobs:
       with:
           repository: ${{ env.DEPLOYMENT_REPOSITORY }}
           token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+          path: other-repo
           #Cleans the workspace before checking out code.
           clean: true
           fetch-depth: 0   #Required to push back
@@ -128,6 +129,7 @@ jobs:
       uses: mikefarah/yq@v4.44.1
       with:
         cmd: |
+          cd other-repo
           #yq -i '.image.tag = "${{ inputs.image_tag }}"' environments/prod/values.yaml
           #yq e -i '.containers.name.tag = strenv(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
           yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
@@ -137,6 +139,8 @@ jobs:
 
     - name: Commit and push
       run: |
+        cd other-repo
+        
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
 
