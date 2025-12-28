@@ -157,10 +157,42 @@ jobs:
           git push --set-upstream origin ${NEW_BRANCH_NAME}
 
           echo "RC version: ${RC_VERSION}"
+          #git tag -a "$VERSION" -m "Release $VERSION"
           git tag ${RC_VERSION}
           echo "Tags: $(git tag -l)"
 
           #Push the tag.
           git push origin ${RC_VERSION}
 
+      - name: Checkout develop branch
+        run: |
+          git checkout develop
+
+      - name: Increment the version
+        run: |
+          VERSION_MAJOR=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$1}' | tr -d '\n')
+          VERSION_MINOR=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$2}' | tr -d '\n')
+          VERSION_PATCH=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$3}' | tr -d '\n')
+
+          #Select which segment to increment.
+          if [[ ${github.event.inputs.environment} == 'major' ]]; then
+            INCREMENTED_VERSION=$VERSION_MAJOR.$(($VERSION_MINOR + 1)).$VERSION_PATCH >> GITHUB_ENV
+          else
+
+          fi
           
+      - name: Update version file
+        run: |
+          jq ".version = \"${{ steps.bump.outputs.new }}\"" package.json > tmp.json
+          mv tmp.json package.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add package.json
+          git commit -m "chore: bump develop version to ${{ steps.bump.outputs.new }}" \
+            || echo "No changes to commit"
+
+          git push

@@ -20,6 +20,8 @@ env:
   ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
+  DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
+  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
 jobs:
   build-feature-branch:
@@ -77,35 +79,62 @@ jobs:
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
 
-      #Configure the artifact repository credentials.
-    - name: Configure artifact repository credentials
-      uses: aws-actions/configure-aws-credentials@v4
+    #   #Configure the artifact repository credentials.
+    # - name: Configure artifact repository credentials
+    #   uses: aws-actions/configure-aws-credentials@v4
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: ${{ env.AWS_REGION }}
+
+    #   #Only needed to log in to private ECR repositories.
+    #   # - name: Login to Amazon ECR
+    #   #   id: login-ecr
+    #   #   uses: aws-actions/amazon-ecr-login@v2
+
+    #   #Log in to the artifact repository.
+    # - name: Login to the artifact repository
+    #   run: |
+    #     aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
+
+    #   #Build the image.
+    # - name: Build image
+    #   run: |
+    #     echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+    #     docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
+
+    #   #Push the built image to an artifact repository.
+    # - name: Push image to artifact repository
+    #   run: |
+    #     docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
+
+    ###Deployment.
+
+    #Checkout the gitops repository.
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+          repository: ${{ env.DEPLOYMENT_REPOSITORY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0   #Required to push back
 
-      #Only needed to log in to private ECR repositories.
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
-
-      #Log in to the artifact repository.
-    - name: Login to the artifact repository
+    - name: Change the image tag
+      uses: mikefarah/yq@v4.44.1
       run: |
-        aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
+        #yq -i '.image.tag = "${{ inputs.image_tag }}"' environments/prod/values.yaml
+        #yq e -i '.containers.name.tag = strenv(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
+        yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
 
-      #Build the image.
-    - name: Build image
+    - name: Commit and push
       run: |
-        echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
-        docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
 
-      #Push the built image to an artifact repository.
-    - name: Push image to artifact repository
-      run: |
-        docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
+        git add ${DEV_ENVIRONMENT_VALUES_FILE}
+        git commit -m "Chore (helm): replace the image tag with ${IMAGE_TAG}" || echo "No changes to commit"
 
+        git push
 
   # deploy:
   #   runs-on: ubuntu-latest
