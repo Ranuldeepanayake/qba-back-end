@@ -21,7 +21,7 @@ env:
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
   DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
-  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
+  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm.git
 
 #Permissions.
 permissions:
