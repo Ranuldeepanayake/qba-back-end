@@ -23,6 +23,10 @@ env:
   DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
+#Permissions.
+permissions:
+  contents: write
+
 jobs:
   build-feature-branch:
 
@@ -116,6 +120,8 @@ jobs:
       with:
           repository: ${{ env.DEPLOYMENT_REPOSITORY }}
           token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+          #Cleans the workspace before checking out code.
+          clean: true
           fetch-depth: 0   #Required to push back
 
     - name: Change the image tag
