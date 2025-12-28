@@ -111,7 +111,6 @@ jobs:
     ###Deployment.
 
     #Checkout the gitops repository.
-    steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -125,6 +124,9 @@ jobs:
         #yq -i '.image.tag = "${{ inputs.image_tag }}"' environments/prod/values.yaml
         #yq e -i '.containers.name.tag = strenv(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
         yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
+
+        #Verify the change.
+        echo "Tag read back: $(yq '.containers[] | select(.name == "back-end") | .tag' "${DEV_ENVIRONMENT_VALUES_FILE}")""
 
     - name: Commit and push
       run: |
