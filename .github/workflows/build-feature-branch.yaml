@@ -165,7 +165,7 @@ jobs:
         git config user.email "github-actions@github.com"
 
         git add ${DEV_ENVIRONMENT_VALUES_FILE}
-        git commit -m "Chore (helm): replace the image tag with ${IMAGE_TAG}" || echo "No changes to commit"
+        git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG}" || echo "No changes to commit"
 
         git push
 

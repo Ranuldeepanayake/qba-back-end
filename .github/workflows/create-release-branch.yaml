@@ -140,18 +140,18 @@ jobs:
           # else
           #   git commit -m "Pipeline: set version to ${RC_VERSION}"
           # fi
-          git commit -m "Pipeline: set version to ${RC_VERSION}" || echo "No changes to commit"
+          git commit -m "Pipeline (branch creation): created a release branch with version ${RC_VERSION}" || echo "No changes to commit"
+
+          #Create a git tag.
+          echo "RC version: ${RC_VERSION}"
+          git tag -a ${RC_VERSION} -m "Release candidate ${RC_VERSION}"
+          echo "Tags: $(git tag -l)"
 
           #Push the branch.
           git push --set-upstream origin ${NEW_BRANCH_NAME}
 
-          echo "RC version: ${RC_VERSION}"
-          #git tag -a "$VERSION" -m "Release $VERSION"
-          git tag ${RC_VERSION}
-          echo "Tags: $(git tag -l)"
-
           #Push the tag.
-          git push origin ${RC_VERSION}
+          git push origin --tags
 
       #Checkout the parent branch.
       - name: Checkout develop branch
@@ -199,7 +199,7 @@ jobs:
             echo "✅ Incremented version written correctly to the version file"
           fi
 
-      #Commit and push the changes to the repository.
+      #Commit and push the changes to origin.
       - name: Commit and push
         run: |
           git config user.name ${COMMIT_USERNAME} 
