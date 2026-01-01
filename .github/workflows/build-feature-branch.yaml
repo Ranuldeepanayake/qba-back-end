@@ -125,6 +125,7 @@ jobs:
           clean: true
           fetch-depth: 0   #Required to push back
 
+    #Change the image tag.
     - name: Change the image tag
       uses: mikefarah/yq@v4.44.1
       with:
@@ -138,6 +139,7 @@ jobs:
           TAG_READ_BACK=$(yq '.containers[] | select(.name == "back-end") | .tag' "${DEV_ENVIRONMENT_VALUES_FILE}")
           echo "Tag read back: $TAG_READ_BACK"
 
+    #Commit and push the change to the deployment repository.
     - name: Commit and push
       run: |
         cd other-repo
