@@ -182,6 +182,8 @@ jobs:
           echo "Version minor: $VERSION_MINOR"
           echo "Version patch: $VERSION_PATCH"
 
+          echo "File: $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')"
+
           #Select which segment to increment.
           if [[ ${{ github.event.inputs.INPUT_BUMP_SEGMENT }} == 'major' ]]; then
             echo "INCREMENTED_VERSION=$(( $VERSION_MAJOR + 1 )).$VERSION_MINOR.$VERSION_PATCH" >> GITHUB_ENV
