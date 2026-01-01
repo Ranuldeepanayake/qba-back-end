@@ -164,35 +164,55 @@ jobs:
           #Push the tag.
           git push origin ${RC_VERSION}
 
+      #Checkout the parent branch.
       - name: Checkout develop branch
         run: |
           git checkout develop
+          echo "Selected branch: $(git branch)"
 
+      #Read and increment the version number.
       - name: Increment the version
         run: |
+          #Read the version number.
           VERSION_MAJOR=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$1}' | tr -d '\n')
           VERSION_MINOR=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$2}' | tr -d '\n')
           VERSION_PATCH=$(echo ${VERSION_NUMBER} | awk -F '.' '{print \$3}' | tr -d '\n')
 
-          #Select which segment to increment.
-          if [[ ${github.event.inputs.environment} == 'major' ]]; then
-            INCREMENTED_VERSION=$VERSION_MAJOR.$(($VERSION_MINOR + 1)).$VERSION_PATCH >> GITHUB_ENV
-          else
+          echo "Version major: $VERSION_MAJOR"
+          echo "Version minor: $VERSION_MINOR"
+          echo "Version patch: $VERSION_PATCH"
 
+          #Select which segment to increment.
+          if [[ ${github.event.inputs.INPUT_BUMP_SEGMENT} == 'major' ]]; then
+            echo "INCREMENTED_VERSION=$(($VERSION_MAJOR + 1)).$VERSION_MINOR.$VERSION_PATCH" >> GITHUB_ENV
+          elif [[ ${github.event.inputs.INPUT_BUMP_SEGMENT} == 'minor' ]]; then
+            echo "INCREMENTED_VERSION=$VERSION_MAJOR.$(($VERSION_MINOR + 1)).$VERSION_PATCH" >> GITHUB_ENV
           fi
           
+      #Update the version file with the new value.
       - name: Update version file
         run: |
-          jq ".version = \"${{ steps.bump.outputs.new }}\"" package.json > tmp.json
-          mv tmp.json package.json
+          #jq ".version = \"${{ steps.bump.outputs.new }}\"" package.json > tmp.json
+          jq ".version = \"${INCREMENTED_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
 
+          INCREMENTED_VERSION_READ_BACK=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
+          echo "Written incremented version: $INCREMENTED_VERSION_READ_BACK"
+
+          #Validate written changes.
+          if [[ ! $INCREMENTED_VERSION_READ_BACK =~ ${INCREMENTED_VERSION} ]]; then
+            echo "❌ Incremented version not written correctly to the version file. Exiting!"
+            exit 1
+          else
+            echo "✅ Incremented version written correctly to the version file"
+          fi
+
+      #Commit and push the changes to the repository.
       - name: Commit and push
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name ${COMMIT_USERNAME} 
+          git config user.email ${COMMIT_EMAIL}
 
-          git add package.json
-          git commit -m "chore: bump develop version to ${{ steps.bump.outputs.new }}" \
-            || echo "No changes to commit"
+          git add ${VERSION_FILE}
+          git commit -m "Chore (Git flow): bumped the version number to ${$INCREMENTED_VERSION}" || echo "No changes to commit"
 
           git push
