@@ -186,9 +186,11 @@ jobs:
 
           #Select which segment to increment.
           if [[ ${{ github.event.inputs.INPUT_BUMP_SEGMENT }} == 'major' ]]; then
-            echo "INCREMENTED_VERSION=$(( $VERSION_MAJOR + 1 )).$VERSION_MINOR.$VERSION_PATCH" >> GITHUB_ENV
+            INCREMENTED_VERSION="$(($VERSION_MAJOR + 1)).$VERSION_MINOR.$VERSION_PATCH"
+            echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> GITHUB_ENV
           elif [[ ${{ github.event.inputs.INPUT_BUMP_SEGMENT }} == 'minor' ]]; then
-            echo "INCREMENTED_VERSION=$VERSION_MAJOR.$(( $VERSION_MINOR + 1 )).$VERSION_PATCH" >> GITHUB_ENV
+            INCREMENTED_VERSION="$VERSION_MAJOR.$(($VERSION_MINOR + 1)).$VERSION_PATCH"
+            echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> GITHUB_ENV
           fi
 
           echo "Incremented version: $INCREMENTED_VERSION"
