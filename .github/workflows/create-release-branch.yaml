@@ -123,7 +123,7 @@ jobs:
           echo "Prepared release candidate version: ${RC_VERSION}"
 
           #Write the new version to the version file.
-          jq ".version = \"${RC_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
+          jq ".version = \"${RC_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json ${VERSION_FILE}
 
           #echo "Release candidate version in version file: $(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
           RC_VERSION_READ_BACK=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
@@ -191,13 +191,13 @@ jobs:
             echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> GITHUB_ENV
           fi
 
-          echo "Incremented version: $INCREMENTED_VERSION"
+          echo "Incremented version: ${INCREMENTED_VERSION}"
           
       #Update the version file with the new value.
       - name: Update version file
         run: |
           #jq ".version = \"${{ steps.bump.outputs.new }}\"" package.json > tmp.json
-          jq ".version = \"${INCREMENTED_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json package.json
+          jq ".version = \"${INCREMENTED_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json ${VERSION_FILE}
 
           INCREMENTED_VERSION_READ_BACK=$(jq -r '.version' ${VERSION_FILE} | tr -d '\n')
           echo "Written incremented version: $INCREMENTED_VERSION_READ_BACK"
