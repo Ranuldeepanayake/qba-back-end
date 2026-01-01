@@ -108,7 +108,7 @@ jobs:
           #jq ".version = \"${RC_VERSION}\"" package.json > tmp.json && mv tmp.json package.json
 
           RC_VERSION="${VERSION_NUMBER}-rc.${RC_TAG}"
-          echo "RC_VERSION=$RC_VERSION" >> GITHUB_ENV
+          echo "RC_VERSION=$RC_VERSION" >> $GITHUB_ENV
           echo "Prepared release candidate version: ${RC_VERSION}"
 
           #Write the new version to the version file.
@@ -143,15 +143,14 @@ jobs:
           git commit -m "Pipeline (branch creation): created a release branch with version ${RC_VERSION}" || echo "No changes to commit"
 
           #Create a git tag.
-          echo "RC version: ${RC_VERSION}"
-          git tag -a ${RC_VERSION} -m "Release candidate ${RC_VERSION}"
+          git tag -a ${RC_VERSION} -m "Release candidate tag ${RC_VERSION}"
           echo "Tags: $(git tag -l)"
 
           #Push the branch.
           git push --set-upstream origin ${NEW_BRANCH_NAME}
 
           #Push the tag.
-          git push origin --tags
+          git push origin ${RC_VERSION}
 
       #Checkout the parent branch.
       - name: Checkout develop branch
