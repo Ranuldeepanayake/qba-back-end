@@ -2,6 +2,8 @@
 
 name: Build feature/develop branch
 
+# if: github.ref == 'refs/heads/develop'
+
 on:
   #Execute on push and manually.
   #push:
@@ -10,10 +12,22 @@ on:
     #- '**'
     #- develop
     #- main
+    #- "release/**"
   workflow_dispatch:
+    inputs:
+      #Input to select the action.
+      INPUT_ACTION:
+        description: 'Select action'
+        required: true
+        default: build-and-deploy
+        type: choice
+        options:
+          - build
+          - build-and-deploy
 
 #Global environment variables.
 env:
+  INPUT_ACTION: ${{ github.event.inputs.INPUT_ACTION }}
   VERSION_FILE: package.json
   AWS_REGION: us-east-1
   AWS_USERNAME: AWS
@@ -116,6 +130,7 @@ jobs:
 
     #Checkout the gitops repository.
     - name: Checkout code
+      if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       uses: actions/checkout@v4
       with:
           repository: ${{ env.DEPLOYMENT_REPOSITORY }}
@@ -127,6 +142,7 @@ jobs:
 
     #Change the image tag.
     - name: Change the image tag
+      if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       uses: mikefarah/yq@v4.44.1
       with:
         cmd: |
@@ -141,6 +157,7 @@ jobs:
 
     #Commit and push the change to the deployment repository.
     - name: Commit and push
+      if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       run: |
         cd other-repo
 

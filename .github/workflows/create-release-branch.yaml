@@ -9,7 +9,7 @@ on:
       INPUT_ACTION:
         description: 'Select action'
         required: true
-        default: build
+        default: build-and-deploy
         # GitHub doesn't have native radio buttons; use allowed values
         type: choice
         options:
@@ -25,19 +25,6 @@ on:
         options:
           - minor
           - major
-
-#########
-# - name: Deploy to environment
-#   if: ${{ github.event.inputs.environment == 'prod' }}
-#   run: echo "Deploying to production"
-
-# if: github.ref == 'refs/heads/develop'
-
-# on:
-#   push:
-#     branches:
-#       - "release/**"
-########
 
 #Global environment variables.
 env:

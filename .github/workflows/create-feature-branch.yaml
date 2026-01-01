@@ -6,13 +6,14 @@ on:
   #Enable the workflow to be manually triggered. The workflow must be pushed to the default branch at least once.
   workflow_dispatch:
     inputs:
-      branch_name:
+      INPUT_BRANCH_NAME:
         description: "New feature branch name"
         required: true
         #default: "release-1.0"
 
 #Global environment variables.
 env:
+  INPUT_BRANCH_NAME: ${{ github.event.inputs.INPUT_BRANCH_NAME }}
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
 
@@ -31,10 +32,6 @@ jobs:
         #Check the name format of the new branch name input.
       - name: Validate input branch name
         run: |
-          INPUT_BRANCH_NAME="${{ github.event.inputs.branch_name }}"
-
-          #Save input to a global variable. 
-          echo "INPUT_BRANCH_NAME=$INPUT_BRANCH_NAME" >> $GITHUB_ENV 
           echo "Input branch name: ${INPUT_BRANCH_NAME}" 
 
           #Allowed patterns.
@@ -90,7 +87,7 @@ jobs:
           echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
           echo "New branch name: ${NEW_BRANCH_NAME}"
        
-        #Create the new branch and oush it to remote.
+        #Create the new branch and push it to remote.
       - name: Create and push branch
         run: |
           #git checkout ${PARENT_BRANCH}
