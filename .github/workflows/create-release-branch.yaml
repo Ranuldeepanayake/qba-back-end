@@ -41,6 +41,8 @@ on:
 
 #Global environment variables.
 env:
+  INPUT_ACTION: ${{ github.event.inputs.INPUT_ACTION }}
+  INPUT_BUMP_SEGMENT: ${{ github.event.inputs.INPUT_BUMP_SEGMENT }}
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
   RC_TAG: 0 
@@ -183,11 +185,11 @@ jobs:
           echo "Version patch: $VERSION_PATCH"
 
           #Select which segment to increment.
-          if [[ ${{ github.event.inputs.INPUT_BUMP_SEGMENT }} == 'major' ]]; then
-            INCREMENTED_VERSION="$(($VERSION_MAJOR + 1)).$VERSION_MINOR.$VERSION_PATCH"
+          if [[ ${INPUT_BUMP_SEGMENT} == 'major' ]]; then
+            INCREMENTED_VERSION="$((VERSION_MAJOR + 1)).$VERSION_MINOR.$VERSION_PATCH"
             echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> GITHUB_ENV
-          elif [[ ${{ github.event.inputs.INPUT_BUMP_SEGMENT }} == 'minor' ]]; then
-            INCREMENTED_VERSION="$VERSION_MAJOR.$(($VERSION_MINOR + 1)).$VERSION_PATCH"
+          elif [[ ${INPUT_BUMP_SEGMENT} == 'minor' ]]; then
+            INCREMENTED_VERSION="$VERSION_MAJOR.$((VERSION_MINOR + 1)).$VERSION_PATCH"
             echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> GITHUB_ENV
           fi
 
