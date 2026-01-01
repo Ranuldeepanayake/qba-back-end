@@ -187,11 +187,9 @@ jobs:
           #Select which segment to increment.
           if [[ ${INPUT_BUMP_SEGMENT} == 'major' ]]; then
             INCREMENTED_VERSION="$((VERSION_MAJOR + 1)).$VERSION_MINOR.$VERSION_PATCH"
-            echo "V: $INCREMENTED_VERSION"
             echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
           elif [[ ${INPUT_BUMP_SEGMENT} == 'minor' ]]; then
             INCREMENTED_VERSION="$VERSION_MAJOR.$((VERSION_MINOR + 1)).$VERSION_PATCH"
-            echo "V: $INCREMENTED_VERSION"
             echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
           fi
 
@@ -199,9 +197,7 @@ jobs:
           
       #Update the version file with the new value.
       - name: Update version file
-        run: |
-          echo "Incremented version: ${INCREMENTED_VERSION}"
-          
+        run: |        
           #jq ".version = \"${{ steps.bump.outputs.new }}\"" package.json > tmp.json
           jq ".version = \"${INCREMENTED_VERSION}\"" ${VERSION_FILE} > temp.json && mv temp.json ${VERSION_FILE}
 
