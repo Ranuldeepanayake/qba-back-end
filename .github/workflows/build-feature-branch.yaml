@@ -1,18 +1,16 @@
-#Build a feature branch or the develop branch and upload the artifact to a repository.
+#Build a feature branch or the develop branch, upload the artifact to a repository and update the GitOps repository.
 
 name: Build feature/develop branch
 
 # if: github.ref == 'refs/heads/develop'
 
+#Trigger the workflow on-push and manually.
 on:
-  #Execute on push and manually.
-  #push:
-    #Only build automatically if pushed to the specified branches.
-    #branches: 
+  push:
+    branches: 
     #- '**'
-    #- develop
-    #- main
-    #- "release/**"
+    - develop
+    - "feature/**"
   workflow_dispatch:
     inputs:
       #Input to select the action.
