@@ -147,7 +147,7 @@ jobs:
         cd other-repo
 
         #Verify the change.
-        if [[ -f "other-repo/${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
+        if [[ -f "${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
           echo "✅ .env file exists"
         else
           echo "❌ .env file does not exist!"
