@@ -35,6 +35,7 @@ env:
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
   DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
+  DEV_ENVIRONMENT_ENV_FILE: environments/dev/qba-back-end-env.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
 #Permissions.
@@ -126,11 +127,11 @@ jobs:
       run: |
         docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
 
-    ###Deployment.
+    #Deployment. The .env file must be copied to the deployment repository regardless whether the file is deployed or not.
 
     #Checkout the gitops repository.
     - name: Checkout code
-      if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+      #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       uses: actions/checkout@v4
       with:
           repository: ${{ env.DEPLOYMENT_REPOSITORY }}
@@ -140,7 +141,23 @@ jobs:
           clean: true
           fetch-depth: 0   #Required to push back
 
-    #Change the image tag.
+      #Copy environment variables to the deployment repository.
+    - name: Copy the .env file
+      #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+      with:
+        run: |
+          cp .env/.env-dev other-repo/${DEV_ENVIRONMENT_ENV_FILE}
+          cd other-repo
+
+          #Verify the change.
+          if [[ -f "other-repo/${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
+            echo "✅ .env file exists"
+          else
+            echo "❌ .env file does not exist!"
+            exit 1
+          fi
+
+    #Change the image tag. Only if the deploy option is selected.
     - name: Change the image tag
       if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       uses: mikefarah/yq@v4.44.1
@@ -164,8 +181,9 @@ jobs:
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
 
-        git add ${DEV_ENVIRONMENT_VALUES_FILE}
-        git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG}" || echo "No changes to commit"
+        git add ${DEV_ENVIRONMENT_VALUES_FILE};
+        git add ${DEV_ENVIRONMENT_ENV_FILE};
+        git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG} and the .env file" || echo "No changes to commit"
 
         git push
 
