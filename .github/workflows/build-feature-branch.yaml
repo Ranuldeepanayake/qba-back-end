@@ -144,18 +144,17 @@ jobs:
       #Copy environment variables to the deployment repository.
     - name: Copy the .env file
       #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
-      with:
-        run: |
-          cp .env/.env-dev other-repo/${DEV_ENVIRONMENT_ENV_FILE}
-          cd other-repo
+      run: |
+        cp .env/.env-dev other-repo/${DEV_ENVIRONMENT_ENV_FILE}
+        cd other-repo
 
-          #Verify the change.
-          if [[ -f "other-repo/${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
-            echo "✅ .env file exists"
-          else
-            echo "❌ .env file does not exist!"
-            exit 1
-          fi
+        #Verify the change.
+        if [[ -f "other-repo/${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
+          echo "✅ .env file exists"
+        else
+          echo "❌ .env file does not exist!"
+          exit 1
+        fi
 
     #Change the image tag. Only if the deploy option is selected.
     - name: Change the image tag
