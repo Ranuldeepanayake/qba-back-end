@@ -25,7 +25,7 @@ on:
 
 #Global environment variables.
 env:
-  INPUT_ACTION: ${{ github.event.inputs.INPUT_ACTION }}
+  INPUT_ACTION: ${{ github.event.inputs.INPUT_ACTION || 'build-and-deploy' }} #Default needed since the workflow will not use the input default when run on-push.
   VERSION_FILE: package.json
   AWS_REGION: us-east-1
   AWS_USERNAME: AWS
@@ -171,7 +171,7 @@ jobs:
 
     #Commit and push the change to the deployment repository.
     - name: Commit and push
-      if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+      #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       run: |
         cd other-repo
 
