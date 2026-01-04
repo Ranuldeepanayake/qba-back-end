@@ -81,7 +81,34 @@ jobs:
           echo "✅ Version number ${VERSION_NUMBER} is consistent with the format"
         fi
 
-      #Prepare the image tag with the necessary appends.
+    #Read and increment the rc number.
+    - name: Increment the rc number
+      run: |
+        #Read the version number.
+        VERSION_NUMBER_FIRST_SEGMENT=$(echo ${VERSION_NUMBER} | awk -F '-rc.' '{print $1}' | tr -d '\n')
+        RC_TAG=$(echo ${VERSION_NUMBER} | awk -F '-rc.' '{print $2}' | tr -d '\n')
+
+        echo "Version number first segment: $VERSION_NUMBER_FIRST_SEGMENT"
+        echo "RC tag: $RC_TAG"
+
+        #Increment the rc tag.
+        INCREMENTED_VERSION="$VERSION_NUMBER_FIRST_SEGMENT-rc.$((RC_TAG + 1))"
+        echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
+          
+        echo "Incremented version: ${INCREMENTED_VERSION}"
+
+        #Allowed patterns.
+        PATTERN="([0-9]+\.[0-9]+\.[0]-rc\.[0-9]+){1,1}"
+
+        if [[ ! ${INCREMENTED_VERSION} =~ $PATTERN ]]; then
+          echo "❌ Version number ${INCREMENTED_VERSION} is inconsistent with the format. Exiting!"
+          echo "Allowed formats: x.x.0-rc.x"
+          exit 1
+        else
+          echo "✅ Version number ${INCREMENTED_VERSION} is consistent with the format"
+        fi
+
+     #Prepare the image tag with the necessary appends.
     - name: Prepare image tag
       run: | 
         #Append the time stamp variable to the array of runtime variables.
@@ -97,71 +124,37 @@ jobs:
         #Get the branch name. The below statement handles the change in variable used depending on push/pull.
         BRANCH_NAME="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF}}"
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-        echo "Branch name: $BRANCH_NAME"
+        echo "Branch name: ${BRANCH_NAME}"
 
-        #Conditional image tagging based on the branch name.
-        if [[ "$BRANCH_NAME" == release/* ]]; then
-          IMAGE_TAG=${VERSION_NUMBER}-RELEASE-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
-        else
-          echo "❌ branch name conflict!"
-          exit 1
-        fi
+        IMAGE_TAG=${INCREMENTED_VERSION}-RELEASE-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
 
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
 
-      #Configure the artifact repository credentials.
-    - name: Configure artifact repository credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+    #   #Configure the artifact repository credentials.
+    # - name: Configure artifact repository credentials
+    #   uses: aws-actions/configure-aws-credentials@v4
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: ${{ env.AWS_REGION }}
 
-      #Log in to the artifact repository.
-    - name: Login to the artifact repository
-      run: |
-        aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
+    #   #Log in to the artifact repository.
+    # - name: Login to the artifact repository
+    #   run: |
+    #     aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
 
-      #Build the image.
-    - name: Build image
-      run: |
-        echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
-        docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
+    #   #Build the image.
+    # - name: Build image
+    #   run: |
+    #     echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+    #     docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
 
-      #Push the built image to an artifact repository.
-    - name: Push image to artifact repository
-      run: |
-        docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
+    #   #Push the built image to an artifact repository.
+    # - name: Push image to artifact repository
+    #   run: |
+    #     docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
 
-    #Read and increment the rc number.
-    - name: Increment the rc number
-      run: |
-        #Read the version number.
-        VERSION_NUMBER=$(echo ${VERSION_NUMBER} | awk -F '-rc.' '{print $1}' | tr -d '\n')
-        RC_TAG=$(echo ${VERSION_NUMBER} | awk -F '-rc.' '{print $2}' | tr -d '\n')
-
-        echo "Local version number: $VERSION_NUMBER"
-        echo "Global version number: ${VERSION_NUMBER}"
-        echo "RC tag: $RC_TAG"
-
-        #Increment the rc tag.
-        INCREMENTED_VERSION="$VERSION_NUMBER-rc.$((RC_TAG + 1))"
-        echo "INCREMENTED_VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
-          
-        echo "Incremented version: ${INCREMENTED_VERSION}"
-
-        #Allowed patterns.
-        PATTERN="([0-9]+\.[0-9]+\.[0]-rc\.[0-9]+){1,1}"
-
-        if [[ ! ${INCREMENTED_VERSION} =~ $PATTERN ]]; then
-          echo "❌ Version number ${INCREMENTED_VERSION} is inconsistent with the format. Exiting!"
-          echo "Allowed formats: x.x.0-rc.x"
-          exit 1
-        else
-          echo "✅ Version number ${INCREMENTED_VERSION} is consistent with the format"
-        fi
-        
     #Update the version file with the new value.
     - name: Update version file
       run: |        
@@ -178,8 +171,8 @@ jobs:
           echo "✅ Incremented version written correctly to the version file"
         fi
 
-    #Commit and push the changes to origin.
-    - name: Commit and push
+    #Commit and push the changes to the release branch.
+    - name: Commit and push to release
       run: |
         git config user.name ${COMMIT_USERNAME} 
         git config user.email ${COMMIT_EMAIL}
@@ -202,13 +195,36 @@ jobs:
     - name: Checkout develop branch
       run: |
         git checkout ${PARENT_BRANCH}
+        git fetch
+        git pull
         echo "Selected branch: $(git branch)"
 
     #Merge the release branch into the develop branch except for the version file, commit and push.
     - name: Merge release into develop
       run: |
+        echo "Branch name: ${BRANCH_NAME}"
+
+        #git merge --no-commit ${BRANCH_NAME}
+        #git checkout --ours ${VERSION_FILE}
+
+        #git merge ${BRANCH_NAME}
         git merge --no-commit ${BRANCH_NAME}
-        git checkout --ours ${VERSION_FILE}
+        #git checkout origin/develop -- ${VERSION_FILE}
+        git restore --source=HEAD -- ${VERSION_FILE}
+        #git checkout --ours ${VERSION_FILE}
+        #git add ${VERSION_FILE}
+
+        # git merge --no-commit ${BRANCH_NAME}
+        # git checkout --ours ${VERSION_FILE}
+
+        # git merge --no-commit "${BRANCH_NAME}"
+        # git restore --source=HEAD -- "${VERSION_FILE}"
+        # git add .
+
+        #Block 2
+        #git merge --no-commit "${BRANCH_NAME}"
+        #git checkout HEAD~1 -- "${VERSION_FILE}"
+        #git commit --amend --no-edit
 
         git commit -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag \
         to ${INCREMENTED_VERSION}" || echo "No changes to commit"
