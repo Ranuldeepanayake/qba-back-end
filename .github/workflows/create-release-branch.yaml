@@ -140,7 +140,8 @@ jobs:
           git config user.name ${COMMIT_USERNAME} 
           git config user.email ${COMMIT_EMAIL}
 
-          git add ${VERSION_FILE}
+          #git add ${VERSION_FILE}
+          git add .
 
           #Handle the nothing to commit issue.
           # if git diff --cached --quiet; then
@@ -148,6 +149,7 @@ jobs:
           # else
           #   git commit -m "Pipeline: set version to ${RC_VERSION}"
           # fi
+
           git commit -m "Pipeline (release branch creation): created a release branch ${NEW_BRANCH_NAME} with version ${RC_VERSION}" || echo "No changes to commit"
 
           #Create a git tag.
@@ -164,6 +166,8 @@ jobs:
       - name: Checkout develop branch
         run: |
           git checkout develop
+          git fetch
+          git pull
           echo "Selected branch: $(git branch)"
 
       #Read and increment the version number.
