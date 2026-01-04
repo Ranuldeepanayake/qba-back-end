@@ -38,6 +38,7 @@ env:
   QA_ENVIRONMENT_VALUES_FILE: environments/qa/values.yaml
   QA_ENVIRONMENT_ENV_FILE: environments/qa/qba-back-end-env.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
+  CODE_REPOSITORY: Ranuldeepanayake/qba-back-end
 
 #Permissions.
 permissions:
@@ -193,6 +194,34 @@ jobs:
 
     #Merge the release branch with the develop branch.
 
+    #Checkout the develop branch.
+    - name: Checkout develop branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.PARENT_BRANCH }}
+        repository: ${{ env.CODE_REPOSITORY }}
+        token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+        path: develop-repo
+        clean: false  #Important. Later steps need previously checked out files.
+        fetch-depth: 0   #Required to push back
+
+    # #Merge the release branch into the develop branch except for the version file, commit and push.
+    - name: Merge release into develop
+      run: |
+        mkdir temp
+        mv develop-repo/${VERSION_FILE} temp/${VERSION_FILE}
+        cd develop-repo
+        git merge ${BRANCH_NAME}
+        mv ../temp/${VERSION_FILE} ${VERSION_FILE}
+        cat ${VERSION_FILE}
+        git add .
+        
+        git commit -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag to ${INCREMENTED_VERSION}" || echo "No changes to commit"
+
+        git push origin ${PARENT_BRANCH}
+
+        cd ..
+
     #Checkout the parent branch.
     # - name: Checkout develop branch
     #   run: |
@@ -201,62 +230,36 @@ jobs:
     #     git pull origin ${PARENT_BRANCH}
     #     echo "Selected branch: $(git branch)"
 
-    # #Merge the release branch into the develop branch except for the version file, commit and push.
-    - name: Merge release into develop
-      run: |
-        echo "Branch name: ${BRANCH_NAME}"
-        git checkout ${PARENT_BRANCH}
-        echo "Selected branch: $(git branch)"
-        
-        git merge --no-commit ${BRANCH_NAME}
-        git restore --source=HEAD -- ${VERSION_FILE}
-
-        #git merge --no-commit ${BRANCH_NAME}
-        #git checkout --ours ${VERSION_FILE}
-
-        #git checkout origin/develop -- ${VERSION_FILE}
-        #git restore --source=HEAD -- ${VERSION_FILE}
-        #git checkout --ours ${VERSION_FILE}
-        #git add ${VERSION_FILE}
-
-        # git merge --no-commit "${BRANCH_NAME}"
-        # git restore --source=HEAD -- "${VERSION_FILE}"
-        # git add .
-
-        #Block 2
-        #git merge --no-commit "${BRANCH_NAME}"
-        #git checkout HEAD~1 -- "${VERSION_FILE}"
-        #git commit --amend --no-edit
-
-        git commit -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag to ${INCREMENTED_VERSION}" || echo "No changes to commit"
-
-        git push origin ${PARENT_BRANCH}
-
-    # #Checkout the parent branch.
-    # - name: Create temporary branch
+    # # #Merge the release branch into the develop branch except for the version file, commit and push.
+    # - name: Merge release into develop
     #   run: |
-    #     git config user.name ${COMMIT_USERNAME} 
-    #     git config user.email ${COMMIT_EMAIL}
-
-    #     git checkout -b ${TEMPORARY_BRANCH}
+    #     echo "Branch name: ${BRANCH_NAME}"
     #     git checkout ${PARENT_BRANCH}
-    #     git checkout ${TEMPORARY_BRANCH}
-    #     git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
+    #     echo "Selected branch: $(git branch)"
+        
+    #     git merge --no-commit ${BRANCH_NAME}
+    #     git restore --source=HEAD -- ${VERSION_FILE}
 
-    #     git add .
-    #     git commit -m "Created a temp merge branch"
-    #     git push --set-upstream origin ${TEMPORARY_BRANCH}
+    #     #git merge --no-commit ${BRANCH_NAME}
+    #     #git checkout --ours ${VERSION_FILE}
 
-    # - name: Create Pull Request
-    #   uses: peter-evans/create-pull-request@v6
-    #   with:
-    #     token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
-    #     branch: ${{ env.TEMPORARY_BRANCH }}
-    #     base: develop
-    #     title: "Pipeline (pull request): merge release to develop"
-    #     body: |
-    #       This PR was created automatically by GitHub Actions.
-    #     draft: false
+    #     #git checkout origin/develop -- ${VERSION_FILE}
+    #     #git restore --source=HEAD -- ${VERSION_FILE}
+    #     #git checkout --ours ${VERSION_FILE}
+    #     #git add ${VERSION_FILE}
+
+    #     # git merge --no-commit "${BRANCH_NAME}"
+    #     # git restore --source=HEAD -- "${VERSION_FILE}"
+    #     # git add .
+
+    #     #Block 2
+    #     #git merge --no-commit "${BRANCH_NAME}"
+    #     #git checkout HEAD~1 -- "${VERSION_FILE}"
+    #     #git commit --amend --no-edit
+
+    #     git commit -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag to ${INCREMENTED_VERSION}" || echo "No changes to commit"
+
+    #     git push origin ${PARENT_BRANCH}
 
     #Deployment. The .env file must be copied to the deployment repository regardless whether the file is deployed or not.
 
