@@ -208,7 +208,7 @@ jobs:
         git checkout ${PARENT_BRANCH}
         echo "Selected branch: $(git branch)"
         
-        git merge --no-commit "origin/${BRANCH_NAME}"
+        git merge --no-commit ${BRANCH_NAME}
         git restore --source=HEAD -- ${VERSION_FILE}
 
         #git merge --no-commit ${BRANCH_NAME}
