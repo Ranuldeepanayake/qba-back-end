@@ -211,6 +211,9 @@ jobs:
         mkdir temp
         mv develop-repo/${VERSION_FILE} temp/${VERSION_FILE}
         cd develop-repo
+        echo "Branch name: ${BRANCH_NAME}"
+        git checkout ${BRANCH_NAME}
+        git checkout ${PARENT_BRANCH}
         git merge ${BRANCH_NAME}
         mv ../temp/${VERSION_FILE} ${VERSION_FILE}
         cat ${VERSION_FILE}
