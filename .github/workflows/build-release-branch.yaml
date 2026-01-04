@@ -194,16 +194,21 @@ jobs:
     #Merge the release branch with the develop branch.
 
     #Checkout the parent branch.
-    - name: Checkout develop branch
+    # - name: Checkout develop branch
+    #   run: |
+    #     git checkout ${PARENT_BRANCH}
+    #     git fetch
+    #     git pull origin ${PARENT_BRANCH}
+    #     echo "Selected branch: $(git branch)"
+
+    # #Merge the release branch into the develop branch except for the version file, commit and push.
+    - name: Merge release into develop
       run: |
         git checkout ${PARENT_BRANCH}
         git fetch
         git pull origin ${PARENT_BRANCH}
         echo "Selected branch: $(git branch)"
 
-    # #Merge the release branch into the develop branch except for the version file, commit and push.
-    - name: Merge release into develop
-      run: |
         echo "Branch name: ${BRANCH_NAME}"
 
         git merge --no-commit "origin/${BRANCH_NAME}"
