@@ -140,8 +140,7 @@ jobs:
           git config user.name ${COMMIT_USERNAME} 
           git config user.email ${COMMIT_EMAIL}
 
-          #git add ${VERSION_FILE}
-          git add .
+          git add ${VERSION_FILE}
 
           #Handle the nothing to commit issue.
           # if git diff --cached --quiet; then
@@ -150,7 +149,7 @@ jobs:
           #   git commit -m "Pipeline: set version to ${RC_VERSION}"
           # fi
 
-          git commit -m "Pipeline (release branch creation): created a release branch ${NEW_BRANCH_NAME} with version ${RC_VERSION}" || echo "No changes to commit"
+          git commit --allow-empty -m "Pipeline (release branch creation): created a release branch ${NEW_BRANCH_NAME} with version ${RC_VERSION}"
 
           #Create a git tag.
           git tag -a ${RC_VERSION} -m "Release candidate tag ${RC_VERSION}"
@@ -267,57 +266,57 @@ jobs:
           docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
 
 
-      #Deployment. The .env file must be copied to the deployment repository regardless whether the file is deployed or not.
+      # #Deployment. The .env file must be copied to the deployment repository regardless whether the file is deployed or not.
 
-      #Checkout the gitops repository.
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-            repository: ${{ env.DEPLOYMENT_REPOSITORY }}
-            token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
-            path: deployment-repo
-            #Cleans the workspace before checking out code.
-            clean: true
-            fetch-depth: 0   #Required to push back
+      # #Checkout the gitops repository.
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
+      #   with:
+      #       repository: ${{ env.DEPLOYMENT_REPOSITORY }}
+      #       token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+      #       path: deployment-repo
+      #       #Cleans the workspace before checking out code.
+      #       clean: true
+      #       fetch-depth: 0   #Required to push back
 
-        #Copy environment variables to the deployment repository.
-      - name: Copy the .env file
-        run: |
-          cp .env/.env-qa deployment-repo/${QA_ENVIRONMENT_ENV_FILE}
-          cd deployment-repo
+      #   #Copy environment variables to the deployment repository.
+      # - name: Copy the .env file
+      #   run: |
+      #     cp .env/.env-qa deployment-repo/${QA_ENVIRONMENT_ENV_FILE}
+      #     cd deployment-repo
 
-          #Verify the change.
-          if [[ -f "${QA_ENVIRONMENT_ENV_FILE}" ]]; then
-            echo "✅ .env file exists"
-          else
-            echo "❌ .env file does not exist!"
-            exit 1
-          fi
+      #     #Verify the change.
+      #     if [[ -f "${QA_ENVIRONMENT_ENV_FILE}" ]]; then
+      #       echo "✅ .env file exists"
+      #     else
+      #       echo "❌ .env file does not exist!"
+      #       exit 1
+      #     fi
 
-      #Change the image tag. Only if the deploy option is selected.
-      - name: Change the image tag
-        if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
-        uses: mikefarah/yq@v4.44.1
-        with:
-          cmd: |
-            cd deployment-repo
-            yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${QA_ENVIRONMENT_VALUES_FILE}"
+      # #Change the image tag. Only if the deploy option is selected.
+      # - name: Change the image tag
+      #   if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+      #   uses: mikefarah/yq@v4.44.1
+      #   with:
+      #     cmd: |
+      #       cd deployment-repo
+      #       yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${QA_ENVIRONMENT_VALUES_FILE}"
 
-            #Verify the change.
-            TAG_READ_BACK=$(yq '.containers[] | select(.name == "back-end") | .tag' "${QA_ENVIRONMENT_VALUES_FILE}")
-            echo "Tag read back: $TAG_READ_BACK"
+      #       #Verify the change.
+      #       TAG_READ_BACK=$(yq '.containers[] | select(.name == "back-end") | .tag' "${QA_ENVIRONMENT_VALUES_FILE}")
+      #       echo "Tag read back: $TAG_READ_BACK"
 
-      #Commit and push the change to the deployment repository.
-      - name: Commit and push
-        #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
-        run: |
-          cd deployment-repo
+      # #Commit and push the change to the deployment repository.
+      # - name: Commit and push
+      #   #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+      #   run: |
+      #     cd deployment-repo
 
-          git config user.name ${COMMIT_USERNAME} 
-          git config user.email ${COMMIT_EMAIL}
+      #     git config user.name ${COMMIT_USERNAME} 
+      #     git config user.email ${COMMIT_EMAIL}
 
-          git add ${QA_ENVIRONMENT_VALUES_FILE};
-          git add ${QA_ENVIRONMENT_ENV_FILE};
-          git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG} and the .env file" || echo "No changes to commit"
+      #     git add ${QA_ENVIRONMENT_VALUES_FILE};
+      #     git add ${QA_ENVIRONMENT_ENV_FILE};
+      #     git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG} and the .env file" || echo "No changes to commit"
 
-          git push
+      #     git push
