@@ -240,8 +240,8 @@ jobs:
         git config user.email ${COMMIT_EMAIL}
 
         git checkout -b ${TEMPORARY_BRANCH}
-        git checkout ${PARENT_BRANCH}
-        git checkout ${TEMPORARY_BRANCH}
+        #git checkout ${PARENT_BRANCH}
+        #git checkout ${TEMPORARY_BRANCH}
         git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
 
         git add .
