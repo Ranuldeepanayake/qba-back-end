@@ -33,8 +33,16 @@ env:
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
   RC_TAG: 0 
+  AWS_REGION: us-east-1
+  AWS_USERNAME: AWS
+  ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
+  ECR_REPOSITORY_GROUP: qba
+  ECR_REPOSITORY_NAME: qba-back-end
   COMMIT_USERNAME: github-actions
   COMMIT_EMAIL: github-actions@github.com
+  QA_ENVIRONMENT_VALUES_FILE: environments/qa/values.yaml
+  QA_ENVIRONMENT_ENV_FILE: environments/qa/qba-back-end-env.yaml
+  DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
 #Permissions.
 permissions:
@@ -198,7 +206,7 @@ jobs:
             echo "✅ Incremented version written correctly to the version file"
           fi
 
-      #Commit and push the changes to origin.
+      #Commit and push the changes back to the develop branch.
       - name: Commit and push
         run: |
           git config user.name ${COMMIT_USERNAME} 
@@ -206,5 +214,106 @@ jobs:
 
           git add ${VERSION_FILE}
           git commit -m "Pipeline (develop version bump): bumped the version number to ${INCREMENTED_VERSION}" || echo "No changes to commit"
+
+          git push origin ${PARENT_BRANCH}
+
+      #Build.
+
+      #Prepare the image tag with the necessary appends.
+      - name: Prepare image tag
+        run: | 
+          #Append the time stamp variable to the array of runtime variables.
+          BUILD_TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+          echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> $GITHUB_ENV
+          echo "Build timestamp: ${BUILD_TIMESTAMP}"
+
+          #Append the commit digest.
+          DIGEST_SHA=COMMITSHA_$(echo "${GITHUB_SHA}" | cut -c1-8)
+          echo "DIGEST_SHA=$DIGEST_SHA" >> $GITHUB_ENV
+          echo "Digest (SHA): ${DIGEST_SHA}"
+
+          #RC_VERSION is the full version number set at a previous stage.
+          IMAGE_TAG=${RC_VERSION}-RELEASE-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "Image tag: ${IMAGE_TAG}"
+
+        #Configure the artifact repository credentials.
+      - name: Configure artifact repository credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+        #Log in to the artifact repository.
+      - name: Login to the artifact repository
+        run: |
+          aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
+
+        #Build the image.
+      - name: Build image
+        run: |
+          echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+          docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
+
+        #Push the built image to an artifact repository.
+      - name: Push image to artifact repository
+        run: |
+          docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
+
+
+      #Deployment. The .env file must be copied to the deployment repository regardless whether the file is deployed or not.
+
+      #Checkout the gitops repository.
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+            repository: ${{ env.DEPLOYMENT_REPOSITORY }}
+            token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+            path: deployment-repo
+            #Cleans the workspace before checking out code.
+            clean: true
+            fetch-depth: 0   #Required to push back
+
+        #Copy environment variables to the deployment repository.
+      - name: Copy the .env file
+        run: |
+          cp .env/.env-qa deployment-repo/${QA_ENVIRONMENT_ENV_FILE}
+          cd deployment-repo
+
+          #Verify the change.
+          if [[ -f "${QA_ENVIRONMENT_ENV_FILE}" ]]; then
+            echo "✅ .env file exists"
+          else
+            echo "❌ .env file does not exist!"
+            exit 1
+          fi
+
+      #Change the image tag. Only if the deploy option is selected.
+      - name: Change the image tag
+        if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+        uses: mikefarah/yq@v4.44.1
+        with:
+          cmd: |
+            cd deployment-repo
+            yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${QA_ENVIRONMENT_VALUES_FILE}"
+
+            #Verify the change.
+            TAG_READ_BACK=$(yq '.containers[] | select(.name == "back-end") | .tag' "${QA_ENVIRONMENT_VALUES_FILE}")
+            echo "Tag read back: $TAG_READ_BACK"
+
+      #Commit and push the change to the deployment repository.
+      - name: Commit and push
+        #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
+        run: |
+          cd deployment-repo
+
+          git config user.name ${COMMIT_USERNAME} 
+          git config user.email ${COMMIT_EMAIL}
+
+          git add ${QA_ENVIRONMENT_VALUES_FILE};
+          git add ${QA_ENVIRONMENT_ENV_FILE};
+          git commit -m "Pipeline (helm): replaced the image tag with ${IMAGE_TAG} and the .env file" || echo "No changes to commit"
 
           git push

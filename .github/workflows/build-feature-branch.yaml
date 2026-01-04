@@ -32,6 +32,8 @@ env:
   ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
+  COMMIT_USERNAME: github-actions
+  COMMIT_EMAIL: github-actions@github.com
   DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
   DEV_ENVIRONMENT_ENV_FILE: environments/dev/qba-back-end-env.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
@@ -148,7 +150,7 @@ jobs:
       with:
           repository: ${{ env.DEPLOYMENT_REPOSITORY }}
           token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
-          path: other-repo
+          path: deployment-repo
           #Cleans the workspace before checking out code.
           clean: true
           fetch-depth: 0   #Required to push back
@@ -157,8 +159,8 @@ jobs:
     - name: Copy the .env file
       #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       run: |
-        cp .env/.env-dev other-repo/${DEV_ENVIRONMENT_ENV_FILE}
-        cd other-repo
+        cp .env/.env-dev deployment-repo/${DEV_ENVIRONMENT_ENV_FILE}
+        cd deployment-repo
 
         #Verify the change.
         if [[ -f "${DEV_ENVIRONMENT_ENV_FILE}" ]]; then
@@ -174,7 +176,7 @@ jobs:
       uses: mikefarah/yq@v4.44.1
       with:
         cmd: |
-          cd other-repo
+          cd deployment-repo
           #yq -i '.image.tag = "${{ inputs.image_tag }}"' environments/prod/values.yaml
           #yq e -i '.containers.name.tag = strenv(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
           yq -i '(.containers[] | select(.name == "back-end") | .tag) = env(IMAGE_TAG)' "${DEV_ENVIRONMENT_VALUES_FILE}"
@@ -187,10 +189,10 @@ jobs:
     - name: Commit and push
       #if: ${{ env.INPUT_ACTION == 'build-and-deploy' }}
       run: |
-        cd other-repo
+        cd deployment-repo
 
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
+        git config user.name ${COMMIT_USERNAME} 
+        git config user.email ${COMMIT_EMAIL}
 
         git add ${DEV_ENVIRONMENT_VALUES_FILE};
         git add ${DEV_ENVIRONMENT_ENV_FILE};
