@@ -1,6 +1,6 @@
 {
   "name": "qba-back-end",
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0-rc.3",
   "description": "The backend service which pushes data into the queuing service",
   "author": {
     "name": "Ranul",
