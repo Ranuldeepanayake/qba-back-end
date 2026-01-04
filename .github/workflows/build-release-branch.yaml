@@ -242,7 +242,7 @@ jobs:
         git checkout -b ${TEMPORARY_BRANCH}
         git checkout ${PARENT_BRANCH}
         git checkout ${TEMPORARY_BRANCH}
-        git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}"
+        git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
 
         git add .
         git commit -m "Created a temp merge branch"
