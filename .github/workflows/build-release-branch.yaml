@@ -241,9 +241,10 @@ jobs:
         echo "Branch name: ${BRANCH_NAME}"
         
         #git checkout --ours ${VERSION_FILE}
+        git merge --no-commit ${BRANCH_NAME}
         git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
         git add ${VERSION_FILE}
-        git merge --no-commit ${BRANCH_NAME}
+       
         
         #git checkout origin/develop -- ${VERSION_FILE}
         #git restore --source=HEAD -- ${VERSION_FILE}
