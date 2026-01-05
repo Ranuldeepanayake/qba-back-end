@@ -7,9 +7,9 @@ name: Build release branch
 
 #Trigger the workflow on-push and manually.
 on:
-  # push:
-  #   branches: 
-  #   - "release/**"
+  push:
+    branches: 
+    - "release/**"
   workflow_dispatch:
     inputs:
       #Input to select the action.
@@ -134,29 +134,29 @@ jobs:
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
 
-    #   #Configure the artifact repository credentials.
-    # - name: Configure artifact repository credentials
-    #   uses: aws-actions/configure-aws-credentials@v4
-    #   with:
-    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     aws-region: ${{ env.AWS_REGION }}
+      #Configure the artifact repository credentials.
+    - name: Configure artifact repository credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-    #   #Log in to the artifact repository.
-    # - name: Login to the artifact repository
-    #   run: |
-    #     aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
+      #Log in to the artifact repository.
+    - name: Login to the artifact repository
+      run: |
+        aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username ${AWS_USERNAME} --password-stdin ${ECR_REPOSITORY_URL}
 
-    #   #Build the image.
-    # - name: Build image
-    #   run: |
-    #     echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
-    #     docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
+      #Build the image.
+    - name: Build image
+      run: |
+        echo "Image name: ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+        docker build -t ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG} .
 
-    #   #Push the built image to an artifact repository.
-    # - name: Push image to artifact repository
-    #   run: |
-    #     docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
+      #Push the built image to an artifact repository.
+    - name: Push image to artifact repository
+      run: |
+        docker push ${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}
 
     #Update the version file with the new value.
     - name: Update version file
@@ -192,43 +192,6 @@ jobs:
         #Push the tag.
         git push origin ${INCREMENTED_VERSION}
 
-    #Merge the release branch with the develop branch.
-
-    #Checkout the develop branch.
-    # - name: Checkout develop branch
-    #   uses: actions/checkout@v4
-    #   with:
-    #     ref: ${{ env.PARENT_BRANCH }}
-    #     repository: ${{ env.CODE_REPOSITORY }}
-    #     token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
-    #     path: develop-repo
-    #     clean: false  #Important. Later steps need previously checked out files.
-    #     fetch-depth: 0   #Required to push back
-
-    # #Merge the release branch into the develop branch except for the version file, commit and push.
-    # - name: Merge release into develop
-    #   run: |
-    #     mkdir temp
-    #     mv develop-repo/${VERSION_FILE} temp/${VERSION_FILE}
-    #     cd develop-repo
-    #     git add .
-    #     git commit -m "Moved the file"
-
-    #     echo "Branch name: ${BRANCH_NAME}"
-    #     git checkout ${BRANCH_NAME}
-    #     git checkout ${PARENT_BRANCH}
-
-    #     git merge ${BRANCH_NAME}
-    #     mv ../temp/${VERSION_FILE} ${VERSION_FILE}
-    #     cat ${VERSION_FILE}
-    #     git add .
-        
-    #     git commit -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag to ${INCREMENTED_VERSION}" || echo "No changes to commit"
-
-    #     git push origin ${PARENT_BRANCH}
-
-    #     cd ..
-
     #Checkout the parent branch.
     - name: Checkout develop branch
       run: |
@@ -239,9 +202,6 @@ jobs:
     - name: Merge release into develop
       run: |
         echo "Branch name: ${BRANCH_NAME}"
-        
-        #git checkout --ours ${VERSION_FILE}
-        #git merge --no-commit ${BRANCH_NAME}
 
         git merge --no-commit --no-ff ${BRANCH_NAME} || true
         git checkout --ours ${VERSION_FILE}
