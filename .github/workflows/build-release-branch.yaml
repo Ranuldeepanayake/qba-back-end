@@ -195,15 +195,15 @@ jobs:
     #Merge the release branch with the develop branch.
 
     #Checkout the develop branch.
-    - name: Checkout develop branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ env.PARENT_BRANCH }}
-        repository: ${{ env.CODE_REPOSITORY }}
-        token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
-        path: develop-repo
-        clean: false  #Important. Later steps need previously checked out files.
-        fetch-depth: 0   #Required to push back
+    # - name: Checkout develop branch
+    #   uses: actions/checkout@v4
+    #   with:
+    #     ref: ${{ env.PARENT_BRANCH }}
+    #     repository: ${{ env.CODE_REPOSITORY }}
+    #     token: ${{ secrets.DEPLOYMENT_REPOSITORY_TOKEN }}
+    #     path: develop-repo
+    #     clean: false  #Important. Later steps need previously checked out files.
+    #     fetch-depth: 0   #Required to push back
 
     # #Merge the release branch into the develop branch except for the version file, commit and push.
     # - name: Merge release into develop
@@ -240,10 +240,10 @@ jobs:
       run: |
         echo "Branch name: ${BRANCH_NAME}"
         
-        git merge --no-commit ${BRANCH_NAME}
         git checkout --ours ${VERSION_FILE}
         git add ${VERSION_FILE}
-
+        git merge --no-commit ${BRANCH_NAME}
+        
         #git checkout origin/develop -- ${VERSION_FILE}
         #git restore --source=HEAD -- ${VERSION_FILE}
         #git checkout --ours ${VERSION_FILE}
