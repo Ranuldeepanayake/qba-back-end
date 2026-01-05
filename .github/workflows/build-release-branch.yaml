@@ -240,7 +240,8 @@ jobs:
       run: |
         echo "Branch name: ${BRANCH_NAME}"
         
-        git checkout --ours ${VERSION_FILE}
+        #git checkout --ours ${VERSION_FILE}
+        git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
         git add ${VERSION_FILE}
         git merge --no-commit ${BRANCH_NAME}
         
