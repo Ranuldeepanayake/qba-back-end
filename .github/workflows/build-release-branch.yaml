@@ -242,24 +242,15 @@ jobs:
         
         #git checkout --ours ${VERSION_FILE}
         #git merge --no-commit ${BRANCH_NAME}
-        git merge -X theirs ${BRANCH_NAME}
-        git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
+
+        git merge --no-commit --no-ff ${BRANCH_NAME} || true
+        git checkout --ours ${VERSION_FILE}
         git add ${VERSION_FILE}
-       
-        
-        #git checkout origin/develop -- ${VERSION_FILE}
-        #git restore --source=HEAD -- ${VERSION_FILE}
-        #git checkout --ours ${VERSION_FILE}
+
+        #Works
+        #git merge -X theirs ${BRANCH_NAME}
+        #git checkout ${PARENT_BRANCH} -- ${VERSION_FILE}
         #git add ${VERSION_FILE}
-
-        # git merge --no-commit "${BRANCH_NAME}"
-        # git restore --source=HEAD -- "${VERSION_FILE}"
-        # git add .
-
-        #Block 2
-        #git merge --no-commit "${BRANCH_NAME}"
-        #git checkout HEAD~1 -- "${VERSION_FILE}"
-        #git commit --amend --no-edit
 
         git commit --allow-empty -m "Pipeline (merged develop with release): merged ${PARENT_BRANCH} with ${BRANCH_NAME} and incremeted the rc tag to ${INCREMENTED_VERSION}"
 
