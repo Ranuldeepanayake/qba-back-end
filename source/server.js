@@ -1,5 +1,6 @@
 /*  This is an AMQP publisher. It publishes static data to a AMQP server.
     Environment variables are read from the shell. Self healing has been implemented.
+    This is a test branch.
 */
 
 //Library imports.
