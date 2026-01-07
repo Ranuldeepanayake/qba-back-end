@@ -83,9 +83,9 @@ jobs:
           echo "✅ Version number ${VERSION_NUMBER} is consistent with the format"
         fi
 
-      #Prepare the image tag with the necessary appends.
+      #Prepare the image tag with the necessary appends for branches except pull requests.
     - name: Prepare image tag
-      id: meta
+      if: github.event_name != 'pull_request'
       run: | 
         #Append the time stamp variable to the array of runtime variables.
         BUILD_TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
@@ -99,19 +99,48 @@ jobs:
 
         #Get the branch name. The below statement handles the change in variable used depending on push/pull.
         BRANCH_NAME="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF}}"
-        echo "Branch name: $BRANCH_NAME"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        echo "Branch name: ${BRANCH_NAME}"
 
         #Conditional image tagging based on feature or develop.
-        if [[ "$BRANCH_NAME" == feature/* ]]; then
+        if [[ "${BRANCH_NAME}" == feature/* ]]; then
           #Append the final tag to the array of runtime variables.
           IMAGE_TAG=${VERSION_NUMBER}-FEATURE-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
-        elif [[ "$BRANCH_NAME" == "develop" ]]; then
+        elif [[ "${BRANCH_NAME}" == "develop" ]]; then
           #Append the final tag to the array of runtime variables.
           IMAGE_TAG=${VERSION_NUMBER}-DEVELOP-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
         else
-          #For auto created branches like pull requests.
-          IMAGE_TAG=${VERSION_NUMBER}-${BRANCH_NAME}-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
+          echo "❌ invalid branch: ${BRANCH_NAME}"
+          exit 1
         fi
+
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        echo "Image tag: ${IMAGE_TAG}"
+
+      #Prepare the image tag with the necessary appends for pull requests only.
+    - name: Prepare image tag
+      if: github.event_name == 'pull_request'
+      run: | 
+        #Append the time stamp variable to the array of runtime variables.
+        BUILD_TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+        echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> $GITHUB_ENV
+        echo "Build timestamp: ${BUILD_TIMESTAMP}"
+
+        #Append the commit digest.
+        DIGEST_SHA=COMMITSHA_$(echo "${GITHUB_SHA}" | cut -c1-8)
+        echo "DIGEST_SHA=$DIGEST_SHA" >> $GITHUB_ENV
+        echo "Digest (SHA): ${DIGEST_SHA}"
+
+        #Get the branch name. The below statement handles the change in variable used depending on push/pull.
+        BRANCH_NAME="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF}}"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        echo "Branch name: ${BRANCH_NAME}"
+
+        PULL_REQUEST_NUMBER=$(echo ${BRANCH_NAME} | awk -F '/' '{print $1}' | tr -d '\n')
+        echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> $GITHUB_ENV
+        echo "Pull request number: ${PULL_REQUEST_NUMBER}"
+
+        IMAGE_TAG=${VERSION_NUMBER}-PULLREQUEST-${PULL_REQUEST_NUMBER}-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
 
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "Image tag: ${IMAGE_TAG}"
