@@ -4,13 +4,17 @@ name: Build feature/develop branch
 
 # if: github.ref == 'refs/heads/develop'
 
-#Trigger the workflow on-push and manually.
+#Trigger the workflow on push, on pull request and manually.
 on:
   push:
     branches: 
     #- '**'
     - develop
-    - "feature/**"
+    # - "feature/**"
+  pull_request:
+    types: [opened]
+    branches:
+    - develop
   workflow_dispatch:
     inputs:
       #Input to select the action.
