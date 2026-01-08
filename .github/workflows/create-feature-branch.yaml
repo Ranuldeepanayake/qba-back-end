@@ -6,13 +6,23 @@ on:
   #Enable the workflow to be manually triggered. The workflow must be pushed to the default branch at least once.
   workflow_dispatch:
     inputs:
-      INPUT_BRANCH_NAME:
-        description: "New feature branch name"
+      INPUT_BRANCH_TYPE:
+        description: 'Select branch type'
         required: true
+        default: feature
+        type: choice
+        options:
+          - feature
+          - bugfix
+      INPUT_BRANCH_NAME:
+        description: "New branch name"
+        required: true
+      
         #default: "release-1.0"
 
 #Global environment variables.
 env:
+  INPUT_BRANCH_TYPE: ${{ github.event.inputs.INPUT_BRANCH_TYPE }}
   INPUT_BRANCH_NAME: ${{ github.event.inputs.INPUT_BRANCH_NAME }}
   VERSION_FILE: package.json
   PARENT_BRANCH: develop
@@ -79,11 +89,15 @@ jobs:
           fi
 
         #Prepare the new branch name with the necessary appends.
-      - name: Prepare feature branch name
-        id: meta
+      - name: Prepare branch name
         run: | 
-          #Append the necessary components.
-          NEW_BRANCH_NAME="feature/${VERSION_NUMBER}/${INPUT_BRANCH_NAME}"
+          #Append the necessary components based on branch type.
+          if [[ ${INPUT_BRANCH_TYPE} == 'feature' ]]; then
+            NEW_BRANCH_NAME="feature/${VERSION_NUMBER}/${INPUT_BRANCH_NAME}"
+          elif [[ ${INPUT_BRANCH_TYPE} == 'bugfix' ]]; then
+            NEW_BRANCH_NAME="bugfix/${VERSION_NUMBER}/${INPUT_BRANCH_NAME}"
+          fi
+
           echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
           echo "New branch name: ${NEW_BRANCH_NAME}"
        
