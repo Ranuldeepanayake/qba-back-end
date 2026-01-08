@@ -109,6 +109,9 @@ jobs:
         elif [[ "${BRANCH_NAME}" == "develop" ]]; then
           #Append the final tag to the array of runtime variables.
           IMAGE_TAG=${VERSION_NUMBER}-DEVELOP-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
+        elif [[ "${BRANCH_NAME}" == "bugfix/*" ]]; then
+          #Append the final tag to the array of runtime variables.
+          IMAGE_TAG=${VERSION_NUMBER}-BUGFIX-SNAPSHOT-${BUILD_TIMESTAMP}-${DIGEST_SHA}
         else
           echo "❌ invalid branch: ${BRANCH_NAME}"
           exit 1
