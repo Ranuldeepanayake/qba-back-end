@@ -6,10 +6,10 @@ name: Build feature/develop branch
 
 #Trigger the workflow on push, on pull request and manually.
 on:
-  push:
-    branches: 
+  # push:
+  #   branches: 
     #- '**'
-    - develop
+    #- develop
     # - "feature/**"
   pull_request:
     types: [opened]
