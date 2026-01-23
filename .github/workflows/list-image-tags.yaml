@@ -2,12 +2,11 @@ name: List image tags
 
 on:
   workflow_dispatch:
-  on:
-  push:
-    branches: 
-    #- '**'
-    - develop
-    # - "feature/**"
+  # push:
+  #   branches: 
+  #   #- '**'
+  #   - develop
+  #   # - "feature/**"
 
 #Global environment variables.
 env:
