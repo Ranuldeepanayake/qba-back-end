@@ -10,9 +10,9 @@ on:
         default: develop
         type: choice
         options:
-          - develop
-          - release
-          - production
+          - DEVELOP
+          - RELEASE
+          - FEATURE
 
 #Global environment variables.
 env:
