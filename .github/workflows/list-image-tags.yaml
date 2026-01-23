@@ -2,17 +2,17 @@ name: List image tags
 
 on:
   workflow_dispatch:
-  inputs:
-    #Input to select the action.
-    INPUT_TAG_TYPE:
-      description: 'Select tag type'
-      required: true
-      default: develop
-      type: choice
-      options:
-        - develop
-        - release
-        - release
+    inputs:
+      #Input to select the action.
+      INPUT_TAG_TYPE:
+        description: 'Select tag type'
+        required: true
+        default: develop
+        type: choice
+        options:
+          - develop
+          - release
+          - production
 
 #Global environment variables.
 env:
