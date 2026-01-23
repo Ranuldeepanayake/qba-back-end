@@ -47,7 +47,7 @@ jobs:
 
           aws ecr-public describe-images \
             --repository-name "${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}" \
-            --query 'imageDetails[].imageTags[] | [?contains(@, '$INPUT_TAG_TYPE')] | sort(@) | reverse(@)' \
+            --query 'imageDetails[?imageTags!=null].imageTags[] | [?contains(@, '${INPUT_TAG_TYPE}')] | sort(@) | reverse(@)' \
             --output table
 
 #Show all.
