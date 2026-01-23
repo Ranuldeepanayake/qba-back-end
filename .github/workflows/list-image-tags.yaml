@@ -38,7 +38,7 @@ jobs:
         run: |
           REPO_NAME=my-ecr-repo
 
-          aws ecr describe-images \
+          aws ecr-public describe-images \
             --repository-name "${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}" \
             --query 'imageDetails[].imageTags[]' \
             --output table
