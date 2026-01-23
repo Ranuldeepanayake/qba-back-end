@@ -3,15 +3,21 @@ name: List image tags
 on:
   workflow_dispatch:
 
+#Global environment variables.
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
   ECR_REPOSITORY_GROUP: qba
   ECR_REPOSITORY_NAME: qba-back-end
 
+#Permissions.
+permissions:
+  contents: read
+
 jobs:
   list-ecr-tags:
-    runs-on: ubuntu-latest
+    #Runner label.
+    runs-on: self-hosted
 
     steps:
       #Log in to the artifact repository.
