@@ -1,0 +1,33 @@
+name: List image tags
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
+  ECR_REPOSITORY_GROUP: qba
+  ECR_REPOSITORY_NAME: qba-back-end
+
+jobs:
+  list-ecr-tags:
+    runs-on: ubuntu-latest
+
+    steps:
+      #Log in to the artifact repository.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      #List image tags with the AWS CLI.
+      - name: List image tags
+        run: |
+          REPO_NAME=my-ecr-repo
+
+          aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY_URL}/${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}" \
+            --query 'imageDetails[].imageTags[]' \
+            --output table
