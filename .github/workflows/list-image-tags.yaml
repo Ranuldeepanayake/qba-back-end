@@ -2,14 +2,21 @@ name: List image tags
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: 
-  #   #- '**'
-  #   - develop
-  #   # - "feature/**"
+  inputs:
+    #Input to select the action.
+    INPUT_TAG_TYPE:
+      description: 'Select tag type'
+      required: true
+      default: develop
+      type: choice
+      options:
+        - develop
+        - release
+        - release
 
 #Global environment variables.
 env:
+  INPUT_TAG_TYPE: ${{ github.event.inputs.INPUT_TAG_TYPE }}
   AWS_REGION: us-east-1
   ECR_REPOSITORY_URL: public.ecr.aws/l4a5c1v5
   ECR_REPOSITORY_GROUP: qba
@@ -40,5 +47,24 @@ jobs:
 
           aws ecr-public describe-images \
             --repository-name "${ECR_REPOSITORY_GROUP}/${ECR_REPOSITORY_NAME}" \
-            --query 'imageDetails[].imageTags[]' \
+            --query 'imageDetails[?imageTags!=null].imageTags[] | [?contains(@, `${INPUT_TAG_TYPE}`)] | sort(@) | reverse(@)' \
             --output table
+
+#Show all.
+#--query 'imageDetails[].imageTags[]'
+
+#Filter by name.
+#--query 'imageDetails[].imageTags[?starts_with(@, `v`)][]'
+
+#Filter by push time (newest).
+#--query 'imageDetails | sort_by(@,& imagePushedAt) | reverse(@)[].imageTags[]' 
+
+#List with pushed timestamp
+#--query 'imageDetails[].{Tags:imageTags,PushedAt:imagePushedAt}'
+
+# --query '
+#     imageDetails[?imageTags!=null].imageTags[]
+#     | [?contains(@, `DEVELOP-SNAPSHOT`)]
+#     | sort(@)
+#     | reverse(@)
+#   ' \
