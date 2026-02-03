@@ -38,8 +38,8 @@ env:
   ECR_REPOSITORY_NAME: qba-back-end
   COMMIT_USERNAME: github-actions
   COMMIT_EMAIL: github-actions@github.com
-  DEV_ENVIRONMENT_VALUES_FILE: environments/dev/values.yaml
-  DEV_ENVIRONMENT_ENV_FILE: environments/dev/qba-back-end-env.yaml
+  DEV_ENVIRONMENT_VALUES_FILE: environments/qba/dev/values.yaml
+  DEV_ENVIRONMENT_ENV_FILE: environments/qba/dev/qba-back-end-env.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
 
 #Permissions.

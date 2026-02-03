@@ -35,8 +35,8 @@ env:
   TEMPORARY_BRANCH: merge-temp-release-to-develop
   COMMIT_USERNAME: github-actions
   COMMIT_EMAIL: github-actions@github.com
-  QA_ENVIRONMENT_VALUES_FILE: environments/qa/values.yaml
-  QA_ENVIRONMENT_ENV_FILE: environments/qa/qba-back-end-env.yaml
+  QA_ENVIRONMENT_VALUES_FILE: environments/qba/qa/values.yaml
+  QA_ENVIRONMENT_ENV_FILE: environments/qba/qa/qba-back-end-env.yaml
   DEPLOYMENT_REPOSITORY: Ranuldeepanayake/qba-helm
   CODE_REPOSITORY: Ranuldeepanayake/qba-back-end
 
